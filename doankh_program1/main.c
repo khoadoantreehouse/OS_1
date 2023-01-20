@@ -153,10 +153,12 @@ int read_csv(char *file_name, MovieList *movieList)
         // Add the movie to the linked list
         add_movie(movieList, name, year, languages, rating);
     }
+
     printf("Processed file %s and parsed data for %d movies\n", file_name, movieList->size);
     printf("\n");
 
     // Close the file
+    free(currLine); // Free the getLine memory block
     fclose(file);
     return 0;
 }
