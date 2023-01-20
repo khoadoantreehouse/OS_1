@@ -4,6 +4,7 @@
 #include <string.h>
 
 #define MAX_LANGUAGES_SIZE 5 // As specified in the assignment requirements
+#define MAX_LANGUAGE_SIZE_USER_INPUT 25
 
 typedef struct Movie
 {
@@ -153,6 +154,8 @@ int read_csv(char *file_name, MovieList *movieList)
         add_movie(movieList, name, year, languages, rating);
     }
     printf("Processed file %s and parsed data for %d movies\n", file_name, movieList->size);
+    printf("\n");
+
     // Close the file
     fclose(file);
     return 0;
@@ -161,7 +164,7 @@ int read_csv(char *file_name, MovieList *movieList)
 void show_movies_by_year(MovieList *movieList)
 {
     int year;
-    printf("Enter the release year: ");
+    printf("Enter the year for which you want to see movies: ");
     scanf("%d", &year);
 
     // Scan through all movies and compare the year against user input
@@ -181,6 +184,7 @@ void show_movies_by_year(MovieList *movieList)
     {
         printf("No movies found for the year %d\n", year);
     }
+    printf("\n");
 }
 
 void show_highest_rated_movies(MovieList *movieList)
@@ -211,6 +215,38 @@ void show_highest_rated_movies(MovieList *movieList)
             printf("%d %.1f %s\n", i, highest_rated_by_year[i - 1900]->rating, highest_rated_by_year[i - 1900]->name);
         }
     }
+    printf("\n");
+}
+
+void show_movies_by_language(MovieList *movieList)
+{
+    char language[MAX_LANGUAGE_SIZE_USER_INPUT];
+    printf("Enter the language for which you want to see movies: ");
+    scanf("%s", language);
+
+    Movie *current = movieList->head;
+    int find = 0;
+    while (current != NULL)
+    {
+        for (int i = 0; i < current->number_of_languages; i++)
+        {
+            // Check if the current language is already in the list
+            // If yes then ouput and break the loop
+            if (strcmp(current->languages[i], language) == 0)
+            {
+                printf("%d %s\n", current->year, current->name);
+                find = 1;
+                break;
+            }
+        }
+
+        current = current->next;
+    }
+
+    if (find == 0)
+        printf("No data about movies released in %s\n", language);
+
+    printf("\n");
 }
 
 int main(int argc, char *argv[])
@@ -242,27 +278,29 @@ int main(int argc, char *argv[])
         printf("2. Show highest rated movie for each year\n");
         printf("3. Show the title and year of release of all movies in a specific language\n");
         printf("4. Exit from the program\n");
+        printf("\n");
+
+        // Scan user choices for operation
         printf("Enter a choice from 1 to 4: ");
         scanf("%d", &choice);
 
         switch (choice)
         {
         case 1:
-            // TODO:
             show_movies_by_year(&movieList);
             break;
         case 2:
-            // TODO:
             show_highest_rated_movies(&movieList);
             break;
         case 3:
-            // TODO: show_movies_by_language(&movieList);
+            show_movies_by_language(&movieList);
             break;
         case 4:
             printf("Exiting program...\n");
             break;
         default:
             printf("Invalid choice.\n");
+            printf("\n");
             break;
         }
     } while (choice != 4);
