@@ -136,13 +136,15 @@ int read_csv(char *file_name, MovieList *movieList)
     }
 
     // Read the file line by line
-    char line[1024];
-    fgets(line, 1024, file); // Skip the first line (header)
+    char *currLine = NULL;
+    size_t len = 0;
+    ssize_t nread;
+    getline(&currLine, &len, file); // Skip the first line (header)
 
-    while (fgets(line, 1024, file))
+    while ((nread = getline(&currLine, &len, file)) != -1)
     {
         // Get the movie name, year, languages and rating
-        char *name = strtok(line, ",");
+        char *name = strtok(currLine, ",");
         int year = atoi(strtok(NULL, ","));
         char *languages = strtok(NULL, ",");
         double rating = strtod(strtok(NULL, ","), NULL);
