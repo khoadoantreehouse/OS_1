@@ -1,0 +1,13 @@
+# Ignore everything
+*
+
+# But not these files...
+!.gitignore
+!main.c
+!Makefile
+!*.csv
+!README.md
+# etc...
+
+# ...even if they are in subdirectories
+!*/
