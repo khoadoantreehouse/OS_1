@@ -321,6 +321,7 @@ void select_file()
             process_file(file_name);
         }
         break;
+        free(file_name);
     }
     default:
         printf("Invalid choice\n");
