@@ -1,13 +1,15 @@
 #define _GNU_SOURCE
 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
 #include <dirent.h>
-#include <sys/stat.h>
 #include <fcntl.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/stat.h>
+#include <time.h>
 #include <unistd.h>
 
+// Permission as requried (if correct T_T)
 #define DIR_PERMISSIONS (S_IRWXU | S_IRGRP | S_IXGRP)
 #define FILE_PERMISSIONS (S_IRUSR | S_IWUSR | S_IRGRP)
 
@@ -31,6 +33,25 @@ typedef struct MovieList
     Movie *tail;
     int size;
 } MovieList;
+
+char *readinput()
+// Stackoverflow: https://stackoverflow.com/questions/16870485/how-can-i-read-an-input-string-of-unknown-length
+// This function is intended to read undefined input characters
+{
+#define CHUNK 200
+    char *input = NULL;
+    char tempbuf[CHUNK];
+    size_t inputlen = 0, templen = 0;
+    do
+    {
+        fgets(tempbuf, CHUNK, stdin);
+        templen = strlen(tempbuf);
+        input = realloc(input, inputlen + templen + 1);
+        strcpy(input + inputlen, tempbuf);
+        inputlen += templen;
+    } while (templen == CHUNK - 1 && tempbuf[CHUNK - 2] != '\n');
+    return input;
+}
 
 int split_languages(char *languages, char **languages_array)
 {
@@ -150,6 +171,7 @@ int read_csv(char *file_name, MovieList *movieList)
 void process_selected_file(char *filename)
 {
     char directory_name[100];
+    srand(time(NULL));
     sprintf(directory_name, "%s.movies.%d", YOUR_ONID, rand() % 100000);
     int status = mkdir(directory_name, DIR_PERMISSIONS);
 
@@ -211,7 +233,7 @@ int compare_file_sizes(const struct dirent **a, const struct dirent **b)
     struct stat file1, file2;
     stat((*a)->d_name, &file1);
     stat((*b)->d_name, &file2);
-    return (int)(file2.st_size - file1.st_size);
+    return (int)(file2.st_size - file1.st_size); // Return >0 or <0 for size comparison purposes
 }
 
 int is_csv(char *file_name)
@@ -221,7 +243,7 @@ int is_csv(char *file_name)
     {
         return 0;
     }
-    return (strcmp(file_name + len - 4, ".csv") == 0);
+    return (strcmp(file_name + len - 4, ".csv") == 0); // Check if file extensions is .csv, else it will cause Segfault. Ex: movies.o -> correct prefix, smallest -> not .csv
 }
 
 void process_file(char *file_name)
@@ -237,6 +259,8 @@ void find_file(int choice)
     struct dirent **files;
     int count, i;
 
+    // Sort files to pick only the top first file with given piority and prefix
+    // 1 and 0 is used for both piority selection and sorting order
     count = scandir(".", &files, 0, (choice == 1) ? compare_file_sizes : alphasort);
 
     for (i = 0; i < count; i++)
@@ -276,15 +300,18 @@ void select_file()
         break;
     case 3:
     {
-        char file_name[100];
+        char *file_name = NULL;
+        size_t len = 0;
+        ssize_t read;
         printf("Enter the name of the file: ");
+        read = getline(&file_name, &len, stdin);
         scanf("%s", file_name);
         if (fopen(file_name, "r") == NULL)
         {
             printf("Error: file not found.\n");
             select_file();
         }
-        else if (!is_csv(file_name))
+        else if (!is_csv(file_name)) // If the file is a CSV file, process it, else reprompt file selection
         {
             printf("Error: not a .csv file.\n");
             select_file();
@@ -313,8 +340,7 @@ int main()
 
         if (choice == 1)
         {
-            // DONE: file selected successfully
-            // TO DO: check if return to main menu is working
+            // DONE: unit test passed
             select_file();
         }
         else if (choice == 2)
