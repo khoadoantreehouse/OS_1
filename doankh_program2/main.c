@@ -1,24 +1,210 @@
 #define _GNU_SOURCE
 
 #include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
 #include <dirent.h>
-#include <string.h>
 #include <sys/stat.h>
-#include <time.h>
+#include <fcntl.h>
+#include <unistd.h>
 
-void process_selected_file(char *file_name)
+#define _GNU_SOURCE
+
+#define DIR_PERMISSIONS (S_IRWXU | S_IRGRP | S_IXGRP)
+#define FILE_PERMISSIONS (S_IRUSR | S_IWUSR | S_IRGRP)
+
+#define MAX_LANGUAGES_SIZE 5 // As specified in the assignment requirements
+#define MAX_LANGUAGE_SIZE_USER_INPUT 25
+
+typedef struct Movie
 {
-    char dir_name[100];
-    int random_number = rand() % 100000;
-    sprintf(dir_name, "doankh.movies.%d", random_number);
-    if (mkdir(dir_name, S_IRWXU | S_IRGRP | S_IXGRP) != 0)
+    char *name;
+    int year;
+    char **languages;
+    int number_of_languages;
+    double rating;
+    struct Movie *next;
+} Movie;
+
+typedef struct MovieList
+{
+    Movie *head;
+    Movie *tail;
+    int size;
+} MovieList;
+
+int split_languages(char *languages, char **languages_array)
+{
+    // check if the string have a correct format
+    if (languages[0] != '[' || languages[strlen(languages) - 1] != ']')
     {
-        perror("Error creating directory");
+        return 0;
+    }
+
+    // remove brackets
+    languages++;                             // front slash
+    languages[strlen(languages) - 1] = '\0'; // back slash
+
+    int number_of_languages = 0;
+    char *token = NULL;
+    char *saveptr = NULL;
+
+    // Split at ";", allocate new memory block, add to block
+    while ((token = strtok_r(languages, ";", &saveptr)) != NULL)
+    {
+        int length = strlen(token);
+        languages_array[number_of_languages] = malloc((length + 1) * sizeof(char));
+        strcpy(languages_array[number_of_languages], token);
+        languages = NULL;
+        number_of_languages += 1;
+    }
+
+    return number_of_languages;
+}
+
+void free_movies(MovieList *movieList)
+{
+    // Iterate through all instance and free the memory
+    Movie *current = movieList->head;
+    while (current != NULL)
+    {
+        for (int i = 0; i < current->number_of_languages; i++)
+        {
+            free(current->languages[i]);
+        }
+        free(current->languages);
+        free(current->name);
+        Movie *next = (Movie *)current->next;
+        free(current);
+        current = next;
+    }
+    movieList->head = NULL;
+    movieList->tail = NULL;
+    movieList->size = 0;
+}
+
+void add_movie(MovieList *movieList, char *name, int year, char *languages, double rating)
+{
+    // Create a new movie
+    Movie *new_movie = (Movie *)malloc(sizeof(Movie));
+    new_movie->name = (char *)malloc((strlen(name) + 1) * sizeof(char));
+    new_movie->languages = (char **)malloc(MAX_LANGUAGES_SIZE * sizeof(char *));
+    strcpy(new_movie->name, name);
+    new_movie->year = year;
+    new_movie->rating = rating;
+    new_movie->next = NULL;
+
+    // Split languages -> number of languages is returned and stored
+    int i = 0;
+    i = split_languages(languages, new_movie->languages);
+    new_movie->number_of_languages = i;
+
+    // Add the movie to the linked list
+    if (movieList->head == NULL)
+    {
+        movieList->head = new_movie;
+        movieList->tail = new_movie;
+    }
+    else
+    {
+        movieList->tail->next = new_movie;
+        movieList->tail = new_movie;
+    }
+    movieList->size++;
+}
+int read_csv(char *file_name, MovieList *movieList)
+{
+    // Open the file
+    FILE *file = fopen(file_name, "r");
+    if (file == NULL)
+    {
+        return 1;
+    }
+
+    // Read the file line by line
+    char *currLine = NULL;
+    size_t len = 0;
+    ssize_t nread;
+    getline(&currLine, &len, file); // Skip the first line (header)
+
+    while ((nread = getline(&currLine, &len, file)) != -1)
+    {
+        // Get the movie name, year, languages and rating
+        char *name = strtok(currLine, ",");
+        int year = atoi(strtok(NULL, ","));
+        char *languages = strtok(NULL, ",");
+        double rating = strtod(strtok(NULL, ","), NULL);
+
+        // Add the movie to the linked list
+        add_movie(movieList, name, year, languages, rating);
+    }
+
+    printf("Processed file %s and parsed data for %d movies\n", file_name, movieList->size);
+    printf("\n");
+
+    // Close the file
+    free(currLine); // Free the getLine memory block
+    fclose(file);
+    return 0;
+}
+
+void process_selected_file(char *filename)
+{
+    char directory_name[100];
+    sprintf(directory_name, "%s.movies.%d", "your_onid", rand() % 100000);
+    int status = mkdir(directory_name, DIR_PERMISSIONS);
+
+    if (status == 0)
+    {
+        printf("Directory %s created\n", directory_name);
+    }
+    else
+    {
+        printf("Unable to create directory %s\n", directory_name);
         return;
     }
-    printf("Directory created: %s\n", dir_name);
-    // Additional processing of the file can go here.
+
+    // Initialize a new movie list to parse the file contents
+    MovieList movieList = {NULL, NULL, 0};
+
+    read_csv(filename, &movieList);
+
+    // Open the directory
+    DIR *dir = opendir(directory_name);
+    if (dir == NULL)
+    {
+        printf("Error opening the directory\n");
+        return;
+    }
+
+    // For each movie in the movie list, create a new year.txt file and write the movies release that year to the file
+    Movie *current = movieList.head;
+    while (current != NULL)
+    {
+        char year_file_path[100];
+        sprintf(year_file_path, "%s/%d.txt", directory_name, current->year);
+        int year_file = open(year_file_path, O_WRONLY | O_APPEND | O_CREAT, FILE_PERMISSIONS); // Also, allow appending if file exists
+        if (year_file == -1)
+        {
+            printf("Error opening the year file\n");
+            return;
+        }
+
+        // Write the title of the movie to the year file
+        write(year_file, current->name, strlen(current->name));
+        write(year_file, "\n", 1);
+
+        // Close the year file
+        close(year_file);
+
+        current = current->next;
+    }
+
+    // Close the directory
+    closedir(dir);
+
+    // Free the memory used by the linked list
+    free_movies(&movieList);
 }
 
 int compare_file_sizes(const struct dirent **a, const struct dirent **b)
