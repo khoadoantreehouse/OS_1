@@ -8,13 +8,12 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-#define _GNU_SOURCE
-
 #define DIR_PERMISSIONS (S_IRWXU | S_IRGRP | S_IXGRP)
 #define FILE_PERMISSIONS (S_IRUSR | S_IWUSR | S_IRGRP)
 
 #define MAX_LANGUAGES_SIZE 5 // As specified in the assignment requirements
 #define MAX_LANGUAGE_SIZE_USER_INPUT 25
+#define YOUR_ONID "doankh"
 
 typedef struct Movie
 {
@@ -151,7 +150,7 @@ int read_csv(char *file_name, MovieList *movieList)
 void process_selected_file(char *filename)
 {
     char directory_name[100];
-    sprintf(directory_name, "%s.movies.%d", "your_onid", rand() % 100000);
+    sprintf(directory_name, "%s.movies.%d", YOUR_ONID, rand() % 100000);
     int status = mkdir(directory_name, DIR_PERMISSIONS);
 
     if (status == 0)
