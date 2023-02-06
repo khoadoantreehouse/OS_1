@@ -302,7 +302,7 @@ void select_file()
     {
         char *file_name = NULL;
         size_t len = 0;
-        ssize_t read;
+        ssize_t read = 0;
         printf("Enter the name of the file: ");
         read = getline(&file_name, &len, stdin);
         scanf("%s", file_name);
