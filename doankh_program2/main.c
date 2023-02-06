@@ -34,25 +34,6 @@ typedef struct MovieList
     int size;
 } MovieList;
 
-char *readinput()
-// Stackoverflow: https://stackoverflow.com/questions/16870485/how-can-i-read-an-input-string-of-unknown-length
-// This function is intended to read undefined input characters
-{
-#define CHUNK 200
-    char *input = NULL;
-    char tempbuf[CHUNK];
-    size_t inputlen = 0, templen = 0;
-    do
-    {
-        fgets(tempbuf, CHUNK, stdin);
-        templen = strlen(tempbuf);
-        input = realloc(input, inputlen + templen + 1);
-        strcpy(input + inputlen, tempbuf);
-        inputlen += templen;
-    } while (templen == CHUNK - 1 && tempbuf[CHUNK - 2] != '\n');
-    return input;
-}
-
 int split_languages(char *languages, char **languages_array)
 {
     // check if the string have a correct format
