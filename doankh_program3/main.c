@@ -14,6 +14,20 @@ struct command
     int background;
 };
 
+void print_command(struct command cmd)
+{
+    printf("name: %s\n", cmd.name);
+    printf("arguments: ");
+    for (int i = 0; cmd.arguments[i] != NULL; i++)
+    {
+        printf("%s ", cmd.arguments[i]);
+    }
+    printf("\n");
+    printf("input file: %s\n", cmd.input_file);
+    printf("output file: %s\n", cmd.output_file);
+    printf("background: %d\n", cmd.background);
+}
+
 int main()
 {
     char command_line[MAX_COMMAND_LENGTH];
@@ -73,7 +87,8 @@ int main()
         }
         cmd.arguments[argument_count] = NULL;
 
-        // TODO: Handle the parsed command using the command struct
+        // Print out the contents of the command struct
+        print_command(cmd);
     }
 
     return 0;
