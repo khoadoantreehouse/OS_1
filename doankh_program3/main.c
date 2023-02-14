@@ -14,6 +14,30 @@ struct command
     int background;
 };
 
+// function to read a command from the user
+char *getCommand()
+{
+    // allocate memory for the command
+    char *command = calloc(MAX_COMMAND_LENGTH, sizeof(char));
+
+    // print the prompt and read the command
+    printf(": ");
+    fflush(stdout);
+    fgets(command, MAX_COMMAND_LENGTH, stdin);
+
+    // remove the newline character from the end of the command
+    command[strcspn(command, "\n")] = '\0';
+
+    // if the command is a comment or a blank line, ignore it and read another command
+    if (command[0] == '#' || strlen(command) == 0)
+    {
+        free(command);
+        return NULL;
+    }
+
+    return command;
+}
+
 void print_command(struct command cmd)
 {
     printf("name: %s\n", cmd.name);
@@ -30,30 +54,15 @@ void print_command(struct command cmd)
 
 int main()
 {
-    char command_line[MAX_COMMAND_LENGTH];
     struct command cmd;
     char *token;
     int argument_count;
 
     while (1)
     {
-        // Print the command prompt
-        printf(": ");
-        fflush(stdout);
-
-        // Read in the command line
-        if (fgets(command_line, MAX_COMMAND_LENGTH, stdin) == NULL)
-        {
-            // Exit if an error occurs while reading input
-            exit(1);
-        }
-
-        // Initialize the command struct
-        memset(&cmd, 0, sizeof(struct command));
-
         // Parse the command line into individual arguments and set the command struct members
         argument_count = 0;
-        token = strtok(command_line, " \n");
+        token = strtok(getCommand(), " \n");
         while (token != NULL && argument_count < MAX_ARGUMENTS - 1)
         {
             if (strcmp(token, "<") == 0)
