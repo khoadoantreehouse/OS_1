@@ -265,51 +265,50 @@ int main()
     {
         // Get the command from the user
         command_line = getCommand();
-
-        // Expand any instances of "$$" in the command
-        command_line = expandVariable(command_line);
-
-        // Initialize the command struct
-        memset(&cmd, 0, sizeof(struct command));
-
-        // Parse the command line into individual arguments and set the command struct members
-        argument_count = 0;
-        token = strtok(command_line, " \n");
-        while (token != NULL && argument_count < MAX_ARGUMENTS - 1)
-        {
-            if (strcmp(token, "<") == 0)
-            {
-                // Input redirection
-                token = strtok(NULL, " \n");
-                cmd.input_file = token;
-            }
-            else if (strcmp(token, ">") == 0)
-            {
-                // Output redirection
-                token = strtok(NULL, " \n");
-                cmd.output_file = token;
-            }
-            else if (strcmp(token, "&") == 0)
-            {
-                // Background process
-                cmd.background = 1;
-            }
-            else
-            {
-                // Command or argument
-                if (argument_count == 0)
-                {
-                    cmd.name = token;
-                }
-                cmd.arguments[argument_count] = token;
-                argument_count++;
-            }
-            token = strtok(NULL, " \n");
-        }
-        cmd.arguments[argument_count] = NULL;
-
         if (command_line != NULL)
         {
+            // Expand any instances of "$$" in the command
+            command_line = expandVariable(command_line);
+
+            // Initialize the command struct
+            memset(&cmd, 0, sizeof(struct command));
+
+            // Parse the command line into individual arguments and set the command struct members
+            argument_count = 0;
+            token = strtok(command_line, " \n");
+            while (token != NULL && argument_count < MAX_ARGUMENTS - 1)
+            {
+                if (strcmp(token, "<") == 0)
+                {
+                    // Input redirection
+                    token = strtok(NULL, " \n");
+                    cmd.input_file = token;
+                }
+                else if (strcmp(token, ">") == 0)
+                {
+                    // Output redirection
+                    token = strtok(NULL, " \n");
+                    cmd.output_file = token;
+                }
+                else if (strcmp(token, "&") == 0)
+                {
+                    // Background process
+                    cmd.background = 1;
+                }
+                else
+                {
+                    // Command or argument
+                    if (argument_count == 0)
+                    {
+                        cmd.name = token;
+                    }
+                    cmd.arguments[argument_count] = token;
+                    argument_count++;
+                }
+                token = strtok(NULL, " \n");
+            }
+            cmd.arguments[argument_count] = NULL;
+
             // Execute the command
             handleCommand(cmd, &status);
 
