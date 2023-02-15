@@ -63,7 +63,7 @@ char *expandVariable(char *command)
     return command;
 }
 
-void handleCommand(struct command cmd, int status)
+void handleCommand(struct command cmd, int *status)
 {
     if (strcmp(cmd.name, "exit") == 0)
     {
@@ -86,14 +86,15 @@ void handleCommand(struct command cmd, int status)
     }
     else if (strcmp(cmd.name, "status") == 0)
     {
+        int last_status = (int)status;
         // print the exit status or signal of the last foreground process
-        if (WIFEXITED(status))
+        if (WIFEXITED(last_status))
         {
-            printf("exit value %d\n", WEXITSTATUS(status));
+            printf("exit value %d\n", WEXITSTATUS(last_status));
         }
-        else if (WIFSIGNALED(status))
+        else if (WIFSIGNALED(last_status))
         {
-            printf("terminated by signal %d\n", WTERMSIG(status));
+            printf("terminated by signal %d\n", WTERMSIG(last_status));
         }
     }
     else
@@ -232,7 +233,7 @@ int main()
         cmd.arguments[argument_count] = NULL;
 
         // Execute the command
-        handleCommand(cmd, status);
+        handleCommand(cmd, &status);
 
         // Free the memory allocated for the command
         free(command_line);
