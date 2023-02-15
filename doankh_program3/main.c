@@ -164,8 +164,6 @@ void handleCommand(struct command cmd, int status)
             }
         }
     }
-
-    return 0;
 }
 
 int main()
