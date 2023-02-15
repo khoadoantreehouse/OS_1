@@ -127,10 +127,46 @@ void handleCommand(struct command cmd, int *status)
                 }
                 close(input_fd);
             }
+            else if (cmd.background == 1)
+            {
+                // If the user doesn't redirect the standard input for a background command, then standard input should be redirected to /dev/null
+                int input_fd = open("/dev/null", O_RDONLY);
+                if (input_fd == -1)
+                {
+                    perror("open");
+                    *status = 1;
+                    exit(1);
+                }
+                if (dup2(input_fd, STDIN_FILENO) == -1)
+                {
+                    perror("dup2");
+                    *status = 1;
+                    exit(1);
+                }
+                close(input_fd);
+            }
             // redirect output to a file, if specified
             if (cmd.output_file != NULL)
             {
                 int output_fd = open(cmd.output_file, O_WRONLY | O_CREAT | O_TRUNC, 0664);
+                if (output_fd == -1)
+                {
+                    perror("open");
+                    *status = 1;
+                    exit(1);
+                }
+                if (dup2(output_fd, STDOUT_FILENO) == -1)
+                {
+                    perror("dup2");
+                    *status = 1;
+                    exit(1);
+                }
+                close(output_fd);
+            }
+            else if (cmd.background == 1)
+            {
+                // If the user doesn't redirect the standard output for a background command, then standard output should be redirected to /dev/null
+                int output_fd = open("/dev/null", O_WRONLY);
                 if (output_fd == -1)
                 {
                     perror("open");
@@ -167,9 +203,16 @@ void handleCommand(struct command cmd, int *status)
                     exit(1);
                 }
             }
-            else
+            else if (pid != 0 && cmd.background == 1)
             {
                 printf("background pid is %d\n", pid);
+                fflush(stdout);
+            }
+            while (waitpid(-1, status, WNOHANG) > 0)
+            {
+                printf("background pid %d is done: ", pid);
+                fflush(stdout);
+                printStatus(*status);
             }
         }
     }
