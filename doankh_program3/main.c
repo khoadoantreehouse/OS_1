@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdlib.h>
@@ -87,15 +86,14 @@ void handleCommand(struct command cmd, int *status)
     }
     else if (strcmp(cmd.name, "status") == 0)
     {
-        intptr_t last_status = (int)status;
         // print the exit status or signal of the last foreground process
-        if (WIFEXITED(last_status))
+        if (WIFEXITED(*status))
         {
-            printf("exit value %d\n", WEXITSTATUS(last_status));
+            printf("exit value %d\n", WEXITSTATUS(*status));
         }
-        else if (WIFSIGNALED(last_status))
+        else if (WIFSIGNALED(*status))
         {
-            printf("terminated by signal %d\n", WTERMSIG(last_status));
+            printf("terminated by signal %d\n", WTERMSIG(*status));
         }
     }
     else
