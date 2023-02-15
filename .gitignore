@@ -7,6 +7,7 @@
 !Makefile
 !*.csv
 !README.md
+!p3testscript
 # etc...
 
 # ...even if they are in subdirectories
