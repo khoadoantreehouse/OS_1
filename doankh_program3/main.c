@@ -9,6 +9,7 @@
 
 #define MAX_COMMAND_LENGTH 2048
 #define MAX_ARGUMENTS 512
+#define MAX_BG_PROCESSES 100
 
 struct command
 {
@@ -98,7 +99,6 @@ void handleCommand(struct command cmd, int *status)
     }
     else
     {
-        // run a non-built-in command
         pid_t pid = fork();
         if (pid == -1)
         {
@@ -191,6 +191,7 @@ void handleCommand(struct command cmd, int *status)
         }
         else
         {
+
             // parent process
             if (cmd.background == 0)
             {
@@ -203,22 +204,47 @@ void handleCommand(struct command cmd, int *status)
                     exit(1);
                 }
             }
-            else if (pid != 0 && cmd.background == 1)
+            else
             {
                 printf("background pid is %d\n", pid);
-                fflush(stdout);
+                background_processes[num_background_processes] = pid; // add the background process to the list
+                num_background_processes++;                           // increment the number of background processes
             }
-            while (waitpid(-1, status, WNOHANG) > 0)
+
+            // check if any background processes have completed
+            int i = 0;
+            while (i < num_background_processes)
             {
-                printf("background pid %d is done: ", pid);
-                fflush(stdout);
-                printStatus(*status);
+                pid_t wpid = waitpid(background_processes[i], status, WNOHANG);
+                if (wpid == -1)
+                {
+                    perror("waitpid");
+                    *status = 1;
+                    exit(1);
+                }
+                else if (wpid != 0)
+                {
+                    printf("background pid %d is done: exit value %d\n", background_processes[i], WEXITSTATUS(*status));
+                    num_background_processes--; // decrement the number of background processes
+                    for (int j = i; j < num_background_processes; j++)
+                    {
+                        background_processes[j] = background_processes[j + 1]; // shift remaining background processes down
+                    }
+                }
+                else
+                {
+                    i++;
+                }
             }
         }
     }
 }
 
-int status = 0;
+int status = 0; // Global status keeps track of the recent exit status -> read and write status to memory slot
+
+pid_t background_processes[MAX_BG_PROCESSES]; // MAX_BG_PROCESSES is a macro that defines the maximum number of background processes that can be running at any given time
+int num_background_processes = 0;             // keeps track of the number of background processes currently running
+// We can just directly access the array of background processes, no need to use pointers
 
 int main()
 {
