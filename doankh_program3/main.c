@@ -213,6 +213,41 @@ void handleCommand(struct command cmd, int *status)
                 background_processes[num_background_processes] = pid; // add the background process to the list
                 num_background_processes++;                           // increment the number of background processes
             }
+
+            // check if any background processes have completed
+            int i = 0;
+            while (i < num_background_processes)
+            {
+                pid_t wpid = waitpid(background_processes[i], &status, WNOHANG);
+                if (wpid == -1)
+                {
+                    perror("waitpid");
+                    *status = 1;
+                    exit(1);
+                }
+                else if (wpid != 0)
+                {
+                    if (WIFSIGNALED(*status))
+                    {
+                        // if the child process was terminated by a signal, save the signal to status
+                        *status = WTERMSIG(*status);
+                        printf("background pid %d is done: terminated value %d\n", background_processes[i], status);
+                    }
+                    else
+                    {
+                        printf("background pid %d is done: exit value %d\n", background_processes[i], WEXITSTATUS(status));
+                        num_background_processes--; // decrement the number of background processes
+                        for (int j = i; j < num_background_processes; j++)
+                        {
+                            background_processes[j] = background_processes[j + 1]; // shift remaining background processes down
+                        }
+                    }
+                }
+                else
+                {
+                    i++;
+                }
+            }
         }
     }
 }
@@ -228,36 +263,6 @@ int main()
 
     while (1)
     {
-        // check if any background processes have completed
-        int i = 0;
-        while (i < num_background_processes)
-        {
-            pid_t wpid = waitpid(background_processes[i], &status, WNOHANG);
-            if (wpid == -1)
-            {
-                perror("waitpid");
-                status = 1;
-                exit(1);
-            }
-            else if (wpid != 0)
-            {
-                if (WIFSIGNALED(status))
-                {
-                    // if the child process was terminated by a signal, save the signal to status
-                    status = WTERMSIG(status) + 128;
-                }
-                printf("background pid %d is done: exit value %d\n", background_processes[i], status);
-                num_background_processes--; // decrement the number of background processes
-                for (int j = i; j < num_background_processes; j++)
-                {
-                    background_processes[j] = background_processes[j + 1]; // shift remaining background processes down
-                }
-            }
-            else
-            {
-                i++;
-            }
-        }
         // Get the command from the user
         command_line = getCommand();
 
