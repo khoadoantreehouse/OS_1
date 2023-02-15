@@ -159,7 +159,7 @@ void handleCommand(struct command cmd, int *status)
             if (cmd.background == 0)
             {
                 // wait for the child process to finish, if not a background process
-                pid_t wpid = waitpid(pid, &status, 0);
+                pid_t wpid = waitpid(pid, status, 0);
                 if (wpid == -1)
                 {
                     perror("waitpid");
