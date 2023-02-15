@@ -232,7 +232,7 @@ int main()
         int i = 0;
         while (i < num_background_processes)
         {
-            pid_t wpid = waitpid(background_processes[i], status, WNOHANG);
+            pid_t wpid = waitpid(background_processes[i], &status, WNOHANG);
             if (wpid == -1)
             {
                 perror("waitpid");
