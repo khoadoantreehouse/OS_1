@@ -308,11 +308,16 @@ int main()
         }
         cmd.arguments[argument_count] = NULL;
 
-        // Execute the command
-        handleCommand(cmd, &status);
+        if (command_line != NULL)
+        {
+            // Execute the command
+            handleCommand(cmd, &status);
 
-        // Free the memory allocated for the command
-        free(command_line);
+            // Free the memory allocated for the command
+            free(command_line);
+        }
+        else
+            continue;
     }
 
     return 0;
