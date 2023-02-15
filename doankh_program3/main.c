@@ -86,7 +86,7 @@ void handleCommand(struct command cmd, int *status)
     }
     else if (strcmp(cmd.name, "status") == 0)
     {
-        int last_status = (int)status;
+        intptr_t last_status = (int)status;
         // print the exit status or signal of the last foreground process
         if (WIFEXITED(last_status))
         {
@@ -104,7 +104,7 @@ void handleCommand(struct command cmd, int *status)
         if (pid == -1)
         {
             perror("fork");
-            status = 1;
+            *status = 1;
             exit(1);
         }
         else if (pid == 0)
@@ -117,13 +117,13 @@ void handleCommand(struct command cmd, int *status)
                 if (input_fd == -1)
                 {
                     perror("open");
-                    status = 1;
+                    *status = 1;
                     exit(1);
                 }
                 if (dup2(input_fd, STDIN_FILENO) == -1)
                 {
                     perror("dup2");
-                    status = 1;
+                    *status = 1;
                     exit(1);
                 }
                 close(input_fd);
@@ -135,23 +135,23 @@ void handleCommand(struct command cmd, int *status)
                 if (output_fd == -1)
                 {
                     perror("open");
-                    status = 1;
+                    *status = 1;
                     exit(1);
                 }
                 if (dup2(output_fd, STDOUT_FILENO) == -1)
                 {
                     perror("dup2");
-                    status = 1;
+                    *status = 1;
                     exit(1);
                 }
                 close(output_fd);
             }
             // run the command
-            status = 0;
+            *status = 0;
             execvp(cmd.name, cmd.arguments);
 
             perror(cmd.name); // this only runs if execvp fails
-            status = 1;
+            *status = 1;
             exit(1);
         }
         else
@@ -164,7 +164,7 @@ void handleCommand(struct command cmd, int *status)
                 if (wpid == -1)
                 {
                     perror("waitpid");
-                    status = 1;
+                    *status = 1;
                     exit(1);
                 }
             }
