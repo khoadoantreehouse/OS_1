@@ -241,11 +241,20 @@ int main()
             }
             else if (wpid != 0)
             {
-                printf("background pid %d is done: exit value %d\n", background_processes[i], WEXITSTATUS(status));
-                num_background_processes--; // decrement the number of background processes
-                for (int j = i; j < num_background_processes; j++)
+                if (WIFSIGNALED(status))
                 {
-                    background_processes[j] = background_processes[j + 1]; // shift remaining background processes down
+                    // if the child process was terminated by a signal, save the signal to status
+                    status = WTERMSIG(status) + 128;
+                    printf("background pid %d is done: exit value %d\n", background_processes[i], WEXITSTATUS(status));
+                }
+                else
+                {
+                    printf("background pid %d is done: exit value %d\n", background_processes[i], WEXITSTATUS(status));
+                    num_background_processes--; // decrement the number of background processes
+                    for (int j = i; j < num_background_processes; j++)
+                    {
+                        background_processes[j] = background_processes[j + 1]; // shift remaining background processes down
+                    }
                 }
             }
             else
