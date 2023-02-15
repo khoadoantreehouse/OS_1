@@ -49,6 +49,7 @@ char *expandVariable(char *command)
     sprintf(pid_string, "%d", pid);
     char *result = calloc(MAX_COMMAND_LENGTH, sizeof(char));
     char *pos;
+    // Expanding the string indefinitely, because we aren't sure how long the pid will be
     while ((pos = strstr(command, "$$")) != NULL)
     {
         int offset = pos - command;
@@ -104,6 +105,7 @@ void handleCommand(struct command cmd)
         if (pid == -1)
         {
             perror("fork");
+            status = 1;
             exit(1);
         }
         else if (pid == 0)
@@ -116,11 +118,13 @@ void handleCommand(struct command cmd)
                 if (input_fd == -1)
                 {
                     perror("open");
+                    status = 1;
                     exit(1);
                 }
                 if (dup2(input_fd, STDIN_FILENO) == -1)
                 {
                     perror("dup2");
+                    status = 1;
                     exit(1);
                 }
                 close(input_fd);
@@ -132,18 +136,23 @@ void handleCommand(struct command cmd)
                 if (output_fd == -1)
                 {
                     perror("open");
+                    status = 1;
                     exit(1);
                 }
                 if (dup2(output_fd, STDOUT_FILENO) == -1)
                 {
                     perror("dup2");
+                    status = 1;
                     exit(1);
                 }
                 close(output_fd);
             }
             // run the command
+            status = 0;
             execvp(cmd.name, cmd.arguments);
-            perror("execvp"); // this only runs if execvp fails
+
+            perror(cmd.name); // this only runs if execvp fails
+            status = 1;
             exit(1);
         }
         else
@@ -156,6 +165,7 @@ void handleCommand(struct command cmd)
                 if (wpid == -1)
                 {
                     perror("waitpid");
+                    status = 1;
                     exit(1);
                 }
             }
