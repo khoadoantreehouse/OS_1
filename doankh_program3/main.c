@@ -62,8 +62,10 @@ char *expandVariable(char *command)
     return command;
 }
 
-void handleCommand(struct command cmd, int *status)
+void handleCommand(struct command cmd)
 {
+    int status;
+
     if (strcmp(cmd.name, "exit") == 0)
     {
         exit(0); // terminate the shell
@@ -147,7 +149,6 @@ void handleCommand(struct command cmd, int *status)
         else
         {
             // parent process
-            int status;
             if (cmd.background == 0)
             {
                 // wait for the child process to finish, if not a background process
@@ -172,7 +173,6 @@ int main()
     struct command cmd;
     char *token;
     int argument_count;
-    int status = 0;
 
     while (1)
     {
@@ -222,7 +222,7 @@ int main()
         cmd.arguments[argument_count] = NULL;
 
         // Execute the command
-        handleCommand(cmd, &status);
+        handleCommand(cmd);
 
         // Free the memory allocated for the command
         free(command_line);
