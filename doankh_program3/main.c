@@ -62,7 +62,7 @@ char *expandVariable(char *command)
     return command;
 }
 
-void handleCommand(struct command cmd, int status)
+void handleCommand(struct command cmd, int *status)
 {
     if (strcmp(cmd.name, "exit") == 0)
     {
