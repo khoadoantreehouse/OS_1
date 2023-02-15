@@ -218,7 +218,7 @@ void handleCommand(struct command cmd, int *status)
             int i = 0;
             while (i < num_background_processes)
             {
-                pid_t wpid = waitpid(background_processes[i], &status, WNOHANG);
+                pid_t wpid = waitpid(background_processes[i], status, WNOHANG);
                 if (wpid == -1)
                 {
                     perror("waitpid");
@@ -231,11 +231,11 @@ void handleCommand(struct command cmd, int *status)
                     {
                         // if the child process was terminated by a signal, save the signal to status
                         *status = WTERMSIG(*status);
-                        printf("background pid %d is done: terminated value %d\n", background_processes[i], status);
+                        printf("background pid %d is done: terminated value %d\n", background_processes[i], *status);
                     }
                     else
                     {
-                        printf("background pid %d is done: exit value %d\n", background_processes[i], WEXITSTATUS(status));
+                        printf("background pid %d is done: exit value %d\n", background_processes[i], WEXITSTATUS(*status));
                         num_background_processes--; // decrement the number of background processes
                         for (int j = i; j < num_background_processes; j++)
                         {
