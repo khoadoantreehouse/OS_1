@@ -64,6 +64,10 @@ char *expandVariable(char *command)
     return command;
 }
 
+pid_t background_processes[MAX_BG_PROCESSES]; // MAX_BG_PROCESSES is a macro that defines the maximum number of background processes that can be running at any given time
+int num_background_processes = 0;             // keeps track of the number of background processes currently running
+// We can just directly access the array of background processes, no need to use pointers
+
 void handleCommand(struct command cmd, int *status)
 {
     if (strcmp(cmd.name, "exit") == 0)
@@ -241,10 +245,6 @@ void handleCommand(struct command cmd, int *status)
 }
 
 int status = 0; // Global status keeps track of the recent exit status -> read and write status to memory slot
-
-pid_t background_processes[MAX_BG_PROCESSES]; // MAX_BG_PROCESSES is a macro that defines the maximum number of background processes that can be running at any given time
-int num_background_processes = 0;             // keeps track of the number of background processes currently running
-// We can just directly access the array of background processes, no need to use pointers
 
 int main()
 {
