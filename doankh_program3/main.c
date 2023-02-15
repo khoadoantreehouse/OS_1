@@ -1,6 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdlib.h>
+#include <signal.h>
+#include <sys/wait.h>
+#include <unistd.h>
+#include <fcntl.h>
 
 #define MAX_COMMAND_LENGTH 2048
 #define MAX_ARGUMENTS 512
@@ -14,7 +19,6 @@ struct command
     int background;
 };
 
-// function to read a command from the user
 char *getCommand()
 {
     // allocate memory for the command
@@ -38,31 +42,154 @@ char *getCommand()
     return command;
 }
 
-void print_command(struct command cmd)
+char *expandVariable(char *command)
 {
-    printf("name: %s\n", cmd.name);
-    printf("arguments: ");
-    for (int i = 0; cmd.arguments[i] != NULL; i++)
+    char *pid_string = calloc(16, sizeof(char));
+    pid_t pid = getpid();
+    sprintf(pid_string, "%d", pid);
+    char *result = calloc(MAX_COMMAND_LENGTH, sizeof(char));
+    char *pos;
+    while ((pos = strstr(command, "$$")) != NULL)
     {
-        printf("%s ", cmd.arguments[i]);
+        int offset = pos - command;
+        strncpy(result, command, offset);
+        strcat(result, pid_string);
+        strcat(result, command + offset + 2);
+        strcpy(command, result);
     }
-    printf("\n");
-    printf("input file: %s\n", cmd.input_file);
-    printf("output file: %s\n", cmd.output_file);
-    printf("background: %d\n", cmd.background);
+    free(result);
+    free(pid_string);
+    return command;
+}
+
+void handleCommand(struct command cmd, int status)
+{
+    if (strcmp(cmd.name, "exit") == 0)
+    {
+        exit(0); // terminate the shell
+    }
+    else if (strcmp(cmd.name, "cd") == 0)
+    {
+        // change directory
+        if (cmd.arguments[1] == NULL)
+        {
+            chdir(getenv("HOME"));
+        }
+        else
+        {
+            if (chdir(cmd.arguments[1]) == -1)
+            {
+                perror("chdir");
+            }
+        }
+    }
+    else if (strcmp(cmd.name, "status") == 0)
+    {
+        // print the exit status or signal of the last foreground process
+        if (WIFEXITED(status))
+        {
+            printf("exit value %d\n", WEXITSTATUS(status));
+        }
+        else if (WIFSIGNALED(status))
+        {
+            printf("terminated by signal %d\n", WTERMSIG(status));
+        }
+    }
+    else
+    {
+        // run a non-built-in command
+        pid_t pid = fork();
+        if (pid == -1)
+        {
+            perror("fork");
+            exit(1);
+        }
+        else if (pid == 0)
+        {
+            // child process
+            // redirect input from a file, if specified
+            if (cmd.input_file != NULL)
+            {
+                int input_fd = open(cmd.input_file, O_RDONLY);
+                if (input_fd == -1)
+                {
+                    perror("open");
+                    exit(1);
+                }
+                if (dup2(input_fd, STDIN_FILENO) == -1)
+                {
+                    perror("dup2");
+                    exit(1);
+                }
+                close(input_fd);
+            }
+            // redirect output to a file, if specified
+            if (cmd.output_file != NULL)
+            {
+                int output_fd = open(cmd.output_file, O_WRONLY | O_CREAT | O_TRUNC, 0664);
+                if (output_fd == -1)
+                {
+                    perror("open");
+                    exit(1);
+                }
+                if (dup2(output_fd, STDOUT_FILENO) == -1)
+                {
+                    perror("dup2");
+                    exit(1);
+                }
+                close(output_fd);
+            }
+            // run the command
+            execvp(cmd.name, cmd.arguments);
+            perror("execvp"); // this only runs if execvp fails
+            exit(1);
+        }
+        else
+        {
+            // parent process
+            int status;
+            if (cmd.background == 0)
+            {
+                // wait for the child process to finish, if not a background process
+                pid_t wpid = waitpid(pid, &status, 0);
+                if (wpid == -1)
+                {
+                    perror("waitpid");
+                    exit(1);
+                }
+            }
+            else
+            {
+                printf("background pid is %d\n", pid);
+            }
+        }
+    }
+
+    return 0;
 }
 
 int main()
 {
+    char *command_line;
     struct command cmd;
     char *token;
     int argument_count;
+    int status = 0;
 
     while (1)
     {
+        // Get the command from the user
+        command_line = getCommand();
+
+        // Expand any instances of "$$" in the command
+        command_line = expandVariable(command_line);
+
+        // Initialize the command struct
+        memset(&cmd, 0, sizeof(struct command));
+
         // Parse the command line into individual arguments and set the command struct members
         argument_count = 0;
-        token = strtok(getCommand(), " \n");
+        token = strtok(command_line, " \n");
         while (token != NULL && argument_count < MAX_ARGUMENTS - 1)
         {
             if (strcmp(token, "<") == 0)
@@ -96,8 +223,11 @@ int main()
         }
         cmd.arguments[argument_count] = NULL;
 
-        // Print out the contents of the command struct
-        print_command(cmd);
+        // Execute the command
+        handleCommand(cmd, &status);
+
+        // Free the memory allocated for the command
+        free(command_line);
     }
 
     return 0;
