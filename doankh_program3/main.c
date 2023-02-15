@@ -232,6 +232,11 @@ void handleCommand(struct command cmd, int *status)
                         // if the child process was terminated by a signal, save the signal to status
                         *status = WTERMSIG(*status);
                         printf("background pid %d is done: terminated value %d\n", background_processes[i], *status);
+                        num_background_processes--; // decrement the number of background processes
+                        for (int j = i; j < num_background_processes; j++)
+                        {
+                            background_processes[j] = background_processes[j + 1]; // shift remaining background processes down
+                        }
                     }
                     else
                     {
