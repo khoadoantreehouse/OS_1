@@ -63,10 +63,8 @@ char *expandVariable(char *command)
     return command;
 }
 
-void handleCommand(struct command cmd)
+void handleCommand(struct command cmd, int status)
 {
-    int status;
-
     if (strcmp(cmd.name, "exit") == 0)
     {
         exit(0); // terminate the shell
@@ -177,6 +175,8 @@ void handleCommand(struct command cmd)
     }
 }
 
+int status = 0;
+
 int main()
 {
     char *command_line;
@@ -232,7 +232,7 @@ int main()
         cmd.arguments[argument_count] = NULL;
 
         // Execute the command
-        handleCommand(cmd);
+        handleCommand(cmd, status);
 
         // Free the memory allocated for the command
         free(command_line);
