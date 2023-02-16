@@ -297,6 +297,7 @@ void handleCommand(struct command cmd, int *status)
                 pid_t wpid = waitpid(pid, status, 0);
                 if (wpid == -1)
                 {
+                    printf("Here");
                     perror("waitpid");
                     *status = 1;
                     exit(1);
