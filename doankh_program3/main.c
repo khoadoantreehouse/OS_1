@@ -68,6 +68,143 @@ pid_t background_processes[MAX_BG_PROCESSES]; // MAX_BG_PROCESSES is a macro tha
 int num_background_processes = 0;             // keeps track of the number of background processes currently running
 // We can just directly access the array of background processes, no need to use pointers
 
+void changeDirectory(char *path)
+{
+    if (path == NULL)
+    {
+        chdir(getenv("HOME"));
+    }
+    else
+    {
+        if (chdir(path) == -1)
+        {
+            perror("chdir");
+        }
+    }
+}
+
+void printStatus(int status)
+{
+    if (WIFEXITED(status))
+    {
+        printf("exit value %d\n", WEXITSTATUS(status));
+    }
+    else if (WIFSIGNALED(status))
+    {
+        printf("terminated by signal %d\n", WTERMSIG(status));
+    }
+}
+
+void executeCommand(struct command cmd, int *status)
+{
+    *status = 0;
+    execvp(cmd.name, cmd.arguments);
+    perror(cmd.name);
+    *status = 1;
+    exit(1);
+}
+
+void redirectInput(char *inputFile, int *status)
+{
+    int input_fd = open(inputFile, O_RDONLY);
+    if (input_fd == -1)
+    {
+        perror("open");
+        *status = 1;
+        exit(1);
+    }
+    if (dup2(input_fd, STDIN_FILENO) == -1)
+    {
+        perror("dup2");
+        *status = 1;
+        exit(1);
+    }
+    close(input_fd);
+}
+
+void redirectOutput(char *outputFile, int *status)
+{
+    int output_fd = open(outputFile, O_WRONLY | O_CREAT | O_TRUNC, 0664);
+    if (output_fd == -1)
+    {
+        perror("open");
+        *status = 1;
+        exit(1);
+    }
+    if (dup2(output_fd, STDOUT_FILENO) == -1)
+    {
+        perror("dup2");
+        *status = 1;
+        exit(1);
+    }
+    close(output_fd);
+}
+
+void executeCommandWithRedirection(struct command cmd, int *status)
+{
+    if (cmd.input_file != NULL)
+    {
+        redirectInput(cmd.input_file, status);
+    }
+    else if (cmd.background == 1)
+    {
+        redirectInput("/dev/null", status);
+    }
+
+    if (cmd.output_file != NULL)
+    {
+        redirectOutput(cmd.output_file, status);
+    }
+    else if (cmd.background == 1)
+    {
+        redirectOutput("/dev/null", status);
+    }
+
+    executeCommand(cmd, status);
+}
+
+void checkBackgroundProcess(int *status)
+{
+    int i = 0;
+    while (i < num_background_processes)
+    {
+        pid_t wpid = waitpid(background_processes[i], status, WNOHANG);
+        if (wpid == -1)
+        {
+            perror("waitpid");
+            *status = 1;
+            exit(1);
+        }
+        else if (wpid != 0)
+        {
+            if (WIFSIGNALED(*status))
+            {
+                // if the child process was terminated by a signal, save the signal to status
+                *status = WTERMSIG(*status);
+                printf("background pid %d is done: terminated value %d\n", background_processes[i], *status);
+                num_background_processes--; // decrement the number of background processes
+                for (int j = i; j < num_background_processes; j++)
+                {
+                    background_processes[j] = background_processes[j + 1]; // shift remaining background processes down
+                }
+            }
+            else
+            {
+                printf("background pid %d is done: exit value %d\n", background_processes[i], WEXITSTATUS(*status));
+                num_background_processes--; // decrement the number of background processes
+                for (int j = i; j < num_background_processes; j++)
+                {
+                    background_processes[j] = background_processes[j + 1]; // shift remaining background processes down
+                }
+            }
+        }
+        else
+        {
+            i++;
+        }
+    }
+}
+
 void handleCommand(struct command cmd, int *status)
 {
     if (strcmp(cmd.name, "exit") == 0)
@@ -77,29 +214,12 @@ void handleCommand(struct command cmd, int *status)
     else if (strcmp(cmd.name, "cd") == 0)
     {
         // change directory
-        if (cmd.arguments[1] == NULL)
-        {
-            chdir(getenv("HOME"));
-        }
-        else
-        {
-            if (chdir(cmd.arguments[1]) == -1)
-            {
-                perror("chdir");
-            }
-        }
+        changeDiretory(cmd.arguments[1]);
     }
     else if (strcmp(cmd.name, "status") == 0)
     {
         // print the exit status or signal of the last foreground process
-        if (WIFEXITED(*status))
-        {
-            printf("exit value %d\n", WEXITSTATUS(*status));
-        }
-        else if (WIFSIGNALED(*status))
-        {
-            printf("terminated by signal %d\n", WTERMSIG(*status));
-        }
+        printStatus(*status);
     }
     else
     {
@@ -112,86 +232,9 @@ void handleCommand(struct command cmd, int *status)
         }
         else if (pid == 0)
         {
-            // child process
-            // redirect input from a file, if specified
-            if (cmd.input_file != NULL)
-            {
-                int input_fd = open(cmd.input_file, O_RDONLY);
-                if (input_fd == -1)
-                {
-                    perror("open");
-                    *status = 1;
-                    exit(1);
-                }
-                if (dup2(input_fd, STDIN_FILENO) == -1)
-                {
-                    perror("dup2");
-                    *status = 1;
-                    exit(1);
-                }
-                close(input_fd);
-            }
-            else if (cmd.background == 1)
-            {
-                // If the user doesn't redirect the standard input for a background command, then standard input should be redirected to /dev/null
-                int input_fd = open("/dev/null", O_RDONLY);
-                if (input_fd == -1)
-                {
-                    perror("open");
-                    *status = 1;
-                    exit(1);
-                }
-                if (dup2(input_fd, STDIN_FILENO) == -1)
-                {
-                    perror("dup2");
-                    *status = 1;
-                    exit(1);
-                }
-                close(input_fd);
-            }
-            // redirect output to a file, if specified
-            if (cmd.output_file != NULL)
-            {
-                int output_fd = open(cmd.output_file, O_WRONLY | O_CREAT | O_TRUNC, 0664);
-                if (output_fd == -1)
-                {
-                    perror("open");
-                    *status = 1;
-                    exit(1);
-                }
-                if (dup2(output_fd, STDOUT_FILENO) == -1)
-                {
-                    perror("dup2");
-                    *status = 1;
-                    exit(1);
-                }
-                close(output_fd);
-            }
-            else if (cmd.background == 1)
-            {
-                // If the user doesn't redirect the standard output for a background command, then standard output should be redirected to /dev/null
-                int output_fd = open("/dev/null", O_WRONLY);
-                if (output_fd == -1)
-                {
-                    perror("open");
-                    *status = 1;
-                    exit(1);
-                }
-                if (dup2(output_fd, STDOUT_FILENO) == -1)
-                {
-                    perror("dup2");
-                    *status = 1;
-                    exit(1);
-                }
-                close(output_fd);
-            }
+            executeCommandWithRedirection(cmd, status);
             // run the command
-            *status = 0;
-            execvp(cmd.name, cmd.arguments);
-
-            perror(cmd.name); // this only runs if execvp fails
-            *status = 1;
-            exit(1);
+            executeCommand(cmd, status);
         }
         else
         {
@@ -215,44 +258,7 @@ void handleCommand(struct command cmd, int *status)
             }
 
             // check if any background processes have completed
-            int i = 0;
-            while (i < num_background_processes)
-            {
-                pid_t wpid = waitpid(background_processes[i], status, WNOHANG);
-                if (wpid == -1)
-                {
-                    perror("waitpid");
-                    *status = 1;
-                    exit(1);
-                }
-                else if (wpid != 0)
-                {
-                    if (WIFSIGNALED(*status))
-                    {
-                        // if the child process was terminated by a signal, save the signal to status
-                        *status = WTERMSIG(*status);
-                        printf("background pid %d is done: terminated value %d\n", background_processes[i], *status);
-                        num_background_processes--; // decrement the number of background processes
-                        for (int j = i; j < num_background_processes; j++)
-                        {
-                            background_processes[j] = background_processes[j + 1]; // shift remaining background processes down
-                        }
-                    }
-                    else
-                    {
-                        printf("background pid %d is done: exit value %d\n", background_processes[i], WEXITSTATUS(*status));
-                        num_background_processes--; // decrement the number of background processes
-                        for (int j = i; j < num_background_processes; j++)
-                        {
-                            background_processes[j] = background_processes[j + 1]; // shift remaining background processes down
-                        }
-                    }
-                }
-                else
-                {
-                    i++;
-                }
-            }
+            checkBackgroundProcess(status);
         }
     }
 }
