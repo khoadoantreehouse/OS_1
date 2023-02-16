@@ -1,4 +1,7 @@
 #define _POSIX_SOURCE
+#define SA_RESTART 0
+
+// Error handling libraries
 #include <errno.h>
 #include <poll.h>
 
