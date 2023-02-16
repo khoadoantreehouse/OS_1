@@ -214,7 +214,7 @@ void handleCommand(struct command cmd, int *status)
     else if (strcmp(cmd.name, "cd") == 0)
     {
         // change directory
-        changeDiretory(cmd.arguments[1]);
+        changeDirectory(cmd.arguments[1]);
     }
     else if (strcmp(cmd.name, "status") == 0)
     {
