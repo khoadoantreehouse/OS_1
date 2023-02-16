@@ -205,6 +205,29 @@ void checkBackgroundProcess(int *status)
     }
 }
 
+volatile int is_background_enabled = 1; // This variable is used to check if background process is enabled
+// The reason why we need volatile keyword is because when a signal is fired
+// there is no way to indicate whether the variable value is changing or not in the code
+// so we need constantly load the variable. The volatile keyword indicate that the value of this variable can change anytime
+// whenever a signal is fired, not following the code surrounding it
+
+void handle_SIGTSTP(int signo)
+{
+    if (is_background_enabled)
+    {
+        is_background_enabled = 0;
+        char *msg = "Entering foreground-only mode (& is now ignored)\n";
+        write(STDOUT_FILENO, msg, 49);
+    }
+    else
+    {
+        is_background_enabled = 1;
+        char *msg = "Exiting foreground-only mode\n";
+        write(STDOUT_FILENO, msg, 29);
+    }
+    fflush(stdout);
+}
+
 void handleCommand(struct command cmd, int *status)
 {
     if (strcmp(cmd.name, "exit") == 0)
@@ -223,8 +246,18 @@ void handleCommand(struct command cmd, int *status)
     }
     else
     {
-        // ignore SIGINT in the parent process
-        signal(SIGINT, SIG_IGN);
+        // set up signal handlers
+        struct sigaction SIGINT_action = {0}, SIGTSTP_action = {0};
+        SIGINT_action.sa_handler = SIG_IGN;
+        sigfillset(&SIGINT_action.sa_mask);
+        SIGINT_action.sa_flags = SA_RESTART;
+        sigaction(SIGINT, &SIGINT_action, NULL);
+
+        SIGTSTP_action.sa_handler = handle_SIGTSTP;
+        sigfillset(&SIGTSTP_action.sa_mask);
+        SIGTSTP_action.sa_flags = SA_RESTART;
+        sigaction(SIGTSTP, &SIGTSTP_action, NULL);
+
         pid_t pid = fork();
         if (pid == -1)
         {
@@ -234,17 +267,19 @@ void handleCommand(struct command cmd, int *status)
         }
         else if (pid == 0)
         {
-            // ignore SIGINT in the child process
-            signal(SIGINT, SIG_IGN);
+            // set up signal handlers in child process
+            SIGINT_action.sa_handler = SIG_DFL;
+            sigaction(SIGINT, &SIGINT_action, NULL);
+
             if (cmd.background == 0)
             {
-                // if running in foreground, handle SIGINT with default action
-                signal(SIGINT, SIG_DFL);
+                SIGTSTP_action.sa_handler = SIG_IGN;
+                sigaction(SIGTSTP, &SIGTSTP_action, NULL);
             }
+
             executeCommandWithRedirection(cmd, status);
             // run the command
             executeCommand(cmd, status);
-            exit(*status);
         }
         else
         {
@@ -252,21 +287,21 @@ void handleCommand(struct command cmd, int *status)
             if (cmd.background == 0)
             {
                 // wait for the child process to finish, if not a background process
-                int child_status;
-                pid_t wpid = waitpid(pid, &child_status, 0);
+                pid_t wpid = waitpid(pid, status, 0);
                 if (wpid == -1)
                 {
                     perror("waitpid");
                     *status = 1;
                     exit(1);
                 }
-                *status = child_status;
-                // print signal number if the child was terminated by a signal
-                if (WIFSIGNALED(child_status))
+                if (WIFSIGNALED(*status))
                 {
-                    char buf[256];
-                    sprintf(buf, "Terminated by signal %d\n", WTERMSIG(child_status));
-                    write(STDOUT_FILENO, buf, strlen(buf));
+                    char *msg = "Terminated by signal ";
+                    char num_buf[4];
+                    sprintf(num_buf, "%d", WTERMSIG(*status));
+                    strcat(msg, num_buf);
+                    strcat(msg, "\n");
+                    write(STDOUT_FILENO, msg, strlen(msg));
                 }
             }
             else
