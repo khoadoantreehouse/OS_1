@@ -223,6 +223,8 @@ void handleCommand(struct command cmd, int *status)
     }
     else
     {
+        // ignore SIGINT in the parent process
+        signal(SIGINT, SIG_IGN);
         pid_t pid = fork();
         if (pid == -1)
         {
@@ -232,9 +234,17 @@ void handleCommand(struct command cmd, int *status)
         }
         else if (pid == 0)
         {
+            // ignore SIGINT in the child process
+            signal(SIGINT, SIG_IGN);
+            if (cmd.background == 0)
+            {
+                // if running in foreground, handle SIGINT with default action
+                signal(SIGINT, SIG_DFL);
+            }
             executeCommandWithRedirection(cmd, status);
             // run the command
             executeCommand(cmd, status);
+            exit(*status);
         }
         else
         {
@@ -242,12 +252,21 @@ void handleCommand(struct command cmd, int *status)
             if (cmd.background == 0)
             {
                 // wait for the child process to finish, if not a background process
-                pid_t wpid = waitpid(pid, status, 0);
+                int child_status;
+                pid_t wpid = waitpid(pid, &child_status, 0);
                 if (wpid == -1)
                 {
                     perror("waitpid");
                     *status = 1;
                     exit(1);
+                }
+                *status = child_status;
+                // print signal number if the child was terminated by a signal
+                if (WIFSIGNALED(child_status))
+                {
+                    char buf[256];
+                    sprintf(buf, "Terminated by signal %d\n", WTERMSIG(child_status));
+                    write(STDOUT_FILENO, buf, strlen(buf));
                 }
             }
             else
@@ -274,6 +293,7 @@ int main()
 
     while (1)
     {
+        signal(SIGINT, SIG_IGN); // Ignore SIGINT in the main shell
         // Get the command from the user
         command_line = getCommand();
         if (command_line != NULL)
