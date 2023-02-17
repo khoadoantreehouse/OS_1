@@ -212,27 +212,31 @@ void checkBackgroundProcess(int *status)
     }
 }
 
-volatile int is_background_enabled = 1; // This variable is used to check if background process is enabled
+volatile int foreground_only_mode = 1; // This variable is used to check if background process is enabled
 // The reason why we need volatile keyword is because when a signal is fired
 // there is no way to indicate whether the variable value is changing or not in the code
 // so we need constantly load the variable. The volatile keyword indicate that the value of this variable can change anytime
 // whenever a signal is fired, not following the code surrounding it
+int foreground_process_id;
 
-void handle_SIGTSTP(int signo)
+void handleSIGTSTP(int signo)
 {
-    if (is_background_enabled)
+    if (foreground_process_id != -1) // if there is a foreground process running
     {
-        is_background_enabled = 0;
-        char *msg = "Entering foreground-only mode (& is now ignored)\n";
-        write(STDOUT_FILENO, msg, 49);
+        char *message = "\nEntering foreground-only mode (& is now ignored)\n";
+        write(STDOUT_FILENO, message, 49); // display informative message
+        fflush(stdout);
+        foreground_only_mode = 1;             // set foreground only mode
+        kill(foreground_process_id, SIGTERM); // terminate the foreground process
+        foreground_process_id = -1;           // reset foreground process id
     }
     else
     {
-        is_background_enabled = 1;
-        char *msg = "Exiting foreground-only mode\n";
-        write(STDOUT_FILENO, msg, 29);
+        char *message = "\nExiting foreground-only mode\n";
+        write(STDOUT_FILENO, message, 29); // display informative message
+        fflush(stdout);
+        foreground_only_mode = 0; // unset foreground only mode
     }
-    fflush(stdout);
 }
 
 void handleCommand(struct command cmd, int *status)
@@ -253,18 +257,6 @@ void handleCommand(struct command cmd, int *status)
     }
     else
     {
-        // set up signal handlers
-        struct sigaction SIGINT_action = {0}, SIGTSTP_action = {0};
-        SIGINT_action.sa_handler = SIG_IGN;
-        sigfillset(&SIGINT_action.sa_mask);
-        SIGINT_action.sa_flags = SA_RESTART;
-        sigaction(SIGINT, &SIGINT_action, NULL);
-
-        SIGTSTP_action.sa_handler = handle_SIGTSTP;
-        sigfillset(&SIGTSTP_action.sa_mask);
-        SIGTSTP_action.sa_flags = SA_RESTART;
-        sigaction(SIGTSTP, &SIGTSTP_action, NULL);
-
         pid_t pid = fork();
         if (pid == -1)
         {
@@ -274,14 +266,24 @@ void handleCommand(struct command cmd, int *status)
         }
         else if (pid == 0)
         {
-            // set up signal handlers in child process
-            SIGINT_action.sa_handler = SIG_DFL;
-            sigaction(SIGINT, &SIGINT_action, NULL);
+            // child process
+            struct sigaction act_child;
+            sigemptyset(&act_child.sa_mask);
+            act_child.sa_flags = 0;
 
-            if (cmd.background == 0)
+            // ignore SIGINT and SIGTSTP signals
+            act_child.sa_handler = SIG_IGN;
+            if (sigaction(SIGINT, &act_child, NULL) == -1)
             {
-                SIGTSTP_action.sa_handler = SIG_IGN;
-                sigaction(SIGTSTP, &SIGTSTP_action, NULL);
+                perror("sigaction");
+                *status = 1;
+                exit(1);
+            }
+            if (sigaction(SIGTSTP, &act_child, NULL) == -1)
+            {
+                perror("sigaction");
+                *status = 1;
+                exit(1);
             }
 
             executeCommandWithRedirection(cmd, status);
@@ -291,32 +293,49 @@ void handleCommand(struct command cmd, int *status)
         else
         {
             // parent process
+            struct sigaction act_parent;
+            sigemptyset(&act_parent.sa_mask);
+            act_parent.sa_flags = 0;
+
+            // ignore SIGTSTP signal
+            act_parent.sa_handler = handleSIGTSTP;
+            if (sigaction(SIGTSTP, &act_parent, NULL) == -1)
+            {
+                perror("sigaction");
+                *status = 1;
+                exit(1);
+            }
+
             if (cmd.background == 0)
             {
-                // wait for the child process to finish, if not a background process
-                pid_t wpid = waitpid(pid, status, 0);
-                if (wpid == -1)
+                // foreground process - wait for child to finish
+                foreground_process_id = pid;
+                int status_temp = 0;
+                pid_t wpid;
+                do
                 {
-                    printf("Here");
-                    perror("waitpid");
-                    *status = 1;
-                    exit(1);
-                }
-                if (WIFSIGNALED(*status))
+                    wpid = waitpid(pid, &status_temp, WUNTRACED);
+                } while (!WIFEXITED(status_temp) && !WIFSIGNALED(status_temp) && !WIFSTOPPED(status_temp));
+                foreground_process_id = 0;
+
+                if (WIFSIGNALED(status_temp))
                 {
-                    char *msg = "Terminated by signal ";
-                    char num_buf[4];
-                    sprintf(num_buf, "%d", WTERMSIG(*status));
-                    strcat(msg, num_buf);
-                    strcat(msg, "\n");
-                    write(STDOUT_FILENO, msg, strlen(msg));
+                    // print signal number if the child was terminated by a signal
+                    char signal_str[50];
+                    sprintf(signal_str, "terminated by signal %d\n", WTERMSIG(status_temp));
+                    write(STDOUT_FILENO, signal_str, strlen(signal_str));
                 }
+
+                *status = WEXITSTATUS(status_temp);
             }
             else
             {
-                printf("background pid is %d\n", pid);
-                background_processes[num_background_processes] = pid; // add the background process to the list
-                num_background_processes++;                           // increment the number of background processes
+                // background process - add to list and print message
+                background_processes[num_background_processes] = pid;
+                num_background_processes++;
+                char bg_str[50];
+                sprintf(bg_str, "background pid is %d\n", pid);
+                write(STDOUT_FILENO, bg_str, strlen(bg_str));
             }
 
             // check if any background processes have completed
