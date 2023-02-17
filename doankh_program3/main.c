@@ -383,7 +383,6 @@ int main()
 
             // Execute the command
             handleCommand(cmd, &status);
-            sleep(0.5);
 
             // Free the memory allocated for the command
             free(command_line);
