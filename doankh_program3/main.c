@@ -298,6 +298,7 @@ volatile int handleCommand(struct command cmd, int *status)
                 // wait for the child process to finish, if not a background process or in foreground-only mode
                 int child_status;
                 pid_t wpid = waitpid(pid, &child_status, 0);
+                signal(SIGTSTP, handle_SIGTSTP); // Handle SIGTSTP
 
                 *status = child_status;
                 // print signal number if the child was terminated by a signal
