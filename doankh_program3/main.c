@@ -359,7 +359,8 @@ int main()
 
     while (1)
     {
-        signal(SIGINT, SIG_IGN); // Ignore SIGINT in the main shell
+        signal(SIGINT, SIG_IGN);  // Ignore SIGINT in the main shell
+        signal(SIGTSTP, SIG_IGN); // Ignore SIGTSTP in the main shell
         // Get the command from the user
         command_line = getCommand();
         if (command_line != NULL)
