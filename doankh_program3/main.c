@@ -359,8 +359,19 @@ int main()
 
     while (1)
     {
-        signal(SIGINT, SIG_IGN);  // Ignore SIGINT in the main shell
-        signal(SIGTSTP, SIG_IGN); // Ignore SIGTSTP in the main shell
+        signal(SIGINT, SIG_IGN); // Ignore SIGINT in the main shell
+        struct sigaction act_parent;
+        sigemptyset(&act_parent.sa_mask);
+        act_parent.sa_flags = 0;
+
+        // ignore SIGTSTP signal
+        act_parent.sa_handler = handleSIGTSTP;
+        if (sigaction(SIGTSTP, &act_parent, NULL) == -1)
+        {
+            perror("sigaction");
+            status = 1;
+            exit(1);
+        }
         // Get the command from the user
         command_line = getCommand();
         if (command_line != NULL)
