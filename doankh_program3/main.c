@@ -329,16 +329,11 @@ int main()
     struct command cmd;
     char *token;
     int argument_count;
-    struct sigaction act_parent;
-    sigemptyset(&act_parent.sa_mask);
-    act_parent.sa_flags = 0;
 
     while (1)
     {
-        signal(SIGINT, SIG_IGN); // Ignore SIGINT in the main shell
-
-        // ignore SIGTSTP signal
-        act_parent.sa_handler = handle_SIGTSTP;
+        signal(SIGINT, SIG_IGN);         // Ignore SIGINT in the main shell
+        signal(SIGTSTP, handle_SIGTSTP); // Handle SIGTSTP
 
         // Get the command from the user
         command_line = getCommand();
