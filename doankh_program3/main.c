@@ -286,9 +286,6 @@ void handleCommand(struct command cmd, int *status)
                 signal(SIGTSTP, SIG_IGN);
             }
             executeCommandWithRedirection(cmd, status);
-            // run the command
-            executeCommand(cmd, status);
-            exit(*status);
         }
         else
         {
