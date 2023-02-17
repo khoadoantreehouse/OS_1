@@ -344,12 +344,7 @@ int main()
 
         // ignore SIGTSTP signal
         act_parent.sa_handler = handle_SIGTSTP;
-        if (sigaction(SIGTSTP, &act_parent, NULL) == -1)
-        {
-            perror("sigaction");
-            status = 1;
-            exit(1);
-        }
+
         // Get the command from the user
         command_line = getCommand();
         if (command_line != NULL)
