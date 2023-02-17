@@ -106,6 +106,5 @@ date
 sleep 5 &
 date
 kill -SIGTSTP $$
-sleep 5
 exit
 ___EOF___
