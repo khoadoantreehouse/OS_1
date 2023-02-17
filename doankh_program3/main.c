@@ -229,13 +229,13 @@ void handle_SIGTSTP(int signo)
     if (foreground_only == 0)
     {
         char *msg = "\nEntering foreground-only mode (& is now ignored)\n";
-        write(STDOUT_FILENO, msg, 49);
+        write(STDOUT_FILENO, msg, 50);
         foreground_only = 1;
     }
     else
     {
         char *msg = "\nExiting foreground-only mode\n";
-        write(STDOUT_FILENO, msg, 30);
+        write(STDOUT_FILENO, msg, 31);
         foreground_only = 0;
     }
 }
