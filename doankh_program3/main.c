@@ -384,7 +384,7 @@ int main()
 
             // Execute the command
             while (!handleCommand(cmd, &status))
-                sleep(0.1);
+                sleep(0.5);
 
             // Free the memory allocated for the command
             free(command_line);
