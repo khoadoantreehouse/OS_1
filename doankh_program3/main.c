@@ -278,6 +278,9 @@ void handleCommand(struct command cmd, int *status)
         {
             // ignore SIGINT in the child process
             signal(SIGINT, SIG_IGN);
+            if (foreground_only == 1)
+                cmd.background = 0;
+
             if (cmd.background == 0)
             {
                 // if running in foreground, handle SIGINT with default action
