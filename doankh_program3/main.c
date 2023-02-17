@@ -188,7 +188,9 @@ void checkBackgroundProcess(int *status)
             {
                 // if the child process was terminated by a signal, save the signal to status
                 *status = WTERMSIG(*status);
-                printf("background pid %d is done: terminated value %d\n", background_processes[i], *status);
+                char buf[255];
+                int n = sprintf(buf, "background pid %d is done: terminated value %d\n", background_processes[i], *status);
+                write(STDOUT_FILENO, buf, n);
                 num_background_processes--; // decrement the number of background processes
                 for (int j = i; j < num_background_processes; j++)
                 {
@@ -197,7 +199,9 @@ void checkBackgroundProcess(int *status)
             }
             else
             {
-                printf("background pid %d is done: exit value %d\n", background_processes[i], WEXITSTATUS(*status));
+                char buf[255];
+                int n = sprintf(buf, "background pid %d is done: exit value %d\n", background_processes[i], WEXITSTATUS(*status));
+                write(STDOUT_FILENO, buf, n);
                 num_background_processes--; // decrement the number of background processes
                 for (int j = i; j < num_background_processes; j++)
                 {
@@ -223,7 +227,7 @@ void handleSIGTSTP(int signo)
 {
     if (foreground_process_id != -1) // if there is a foreground process running
     {
-        char *message = "\nEntering foreground-only mode (& is now ignored)\n";
+        char *message = "Entering foreground-only mode (& is now ignored)\n";
         write(STDOUT_FILENO, message, 49); // display informative message
         fflush(stdout);
         foreground_only_mode = 1;             // set foreground only mode
@@ -232,7 +236,7 @@ void handleSIGTSTP(int signo)
     }
     else
     {
-        char *message = "\nExiting foreground-only mode\n";
+        char *message = "Exiting foreground-only mode\n";
         write(STDOUT_FILENO, message, 29); // display informative message
         fflush(stdout);
         foreground_only_mode = 0; // unset foreground only mode
