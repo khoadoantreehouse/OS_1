@@ -330,7 +330,7 @@ void handleCommand(struct command cmd, int *status)
 
                 *status = WEXITSTATUS(status_temp);
             }
-            else
+            else if (foreground_only_mode != 1)
             {
                 // background process - add to list and print message
                 background_processes[num_background_processes] = pid;
@@ -338,6 +338,10 @@ void handleCommand(struct command cmd, int *status)
                 char bg_str[50];
                 sprintf(bg_str, "background pid is %d\n", pid);
                 write(STDOUT_FILENO, bg_str, strlen(bg_str));
+            }
+            else
+            {
+                // Ignore if background called in forground only mode
             }
 
             // check if any background processes have completed
