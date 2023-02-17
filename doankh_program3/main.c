@@ -278,6 +278,8 @@ void handleCommand(struct command cmd, int *status)
         {
             // ignore SIGINT in the child process
             signal(SIGINT, SIG_IGN);
+            if (foreground_only == 1)
+                cmd.background = 0;
 
             if (cmd.background == 0)
             {
@@ -286,12 +288,7 @@ void handleCommand(struct command cmd, int *status)
                 // ignore SIGTSTP in the foreground child process
                 signal(SIGTSTP, SIG_IGN);
             }
-            if (cmd.background == 1 && foreground_only == 1)
-            {
-                // if running background in foreground only mode, do nothing
-            }
-            else
-                executeCommandWithRedirection(cmd, status);
+            executeCommandWithRedirection(cmd, status);
         }
         else
         {
