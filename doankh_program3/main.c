@@ -240,7 +240,7 @@ void handle_SIGTSTP(int signo)
     }
 }
 
-int handleCommand(struct command cmd, int *status)
+void handleCommand(struct command cmd, int *status)
 {
     if (strcmp(cmd.name, "exit") == 0)
     {
@@ -319,7 +319,6 @@ int handleCommand(struct command cmd, int *status)
             checkBackgroundProcess(status);
         }
     }
-    return 1;
 }
 
 int status = 0; // Global status keeps track of the recent exit status -> read and write status to memory slot
@@ -383,8 +382,8 @@ int main()
             cmd.arguments[argument_count] = NULL;
 
             // Execute the command
-            while (!handleCommand(cmd, &status))
-                sleep(1);
+            handleCommand(cmd, &status);
+            sleep(0.5);
 
             // Free the memory allocated for the command
             free(command_line);
