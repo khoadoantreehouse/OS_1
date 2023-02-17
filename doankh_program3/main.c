@@ -346,7 +346,7 @@ int main()
                         // ignore SIGTSTP in the foreground child process
                         signal(SIGTSTP, SIG_IGN);
                     }
-                    executeCommandWithRedirection(cmd, status);
+                    executeCommandWithRedirection(cmd, &status);
                 }
             }
 
