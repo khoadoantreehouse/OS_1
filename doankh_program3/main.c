@@ -228,14 +228,14 @@ void handle_SIGTSTP(int signo)
 {
     if (foreground_only == 0)
     {
-        char *msg = "\nEntering foreground-only mode (& is now ignored)\n\n";
-        write(STDOUT_FILENO, msg, 49);
+        char *msg = "\nEntering foreground-only mode (& is now ignored)\n";
+        write(STDOUT_FILENO, msg, 50);
         foreground_only = 1;
     }
     else
     {
-        char *msg = "\nExiting foreground-only mode\n\n";
-        write(STDOUT_FILENO, msg, 30);
+        char *msg = "\nExiting foreground-only mode\n";
+        write(STDOUT_FILENO, msg, 31);
         foreground_only = 0;
     }
 }
@@ -308,7 +308,7 @@ void handleCommand(struct command cmd, int *status)
                     write(STDOUT_FILENO, buf, strlen(buf));
                 }
             }
-            else
+            else if (foreground_only != 1)
             {
                 printf("background pid is %d\n", pid);
                 background_processes[num_background_processes] = pid; // add the background process to the list
