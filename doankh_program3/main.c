@@ -308,7 +308,7 @@ void handleCommand(struct command cmd, int *status)
                     write(STDOUT_FILENO, buf, strlen(buf));
                 }
             }
-            else
+            else if (foreground_only != 1)
             {
                 printf("background pid is %d\n", pid);
                 background_processes[num_background_processes] = pid; // add the background process to the list
