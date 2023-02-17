@@ -230,9 +230,7 @@ void handleSIGTSTP(int signo)
         char *message = "Entering foreground-only mode (& is now ignored)\n";
         write(STDOUT_FILENO, message, 49); // display informative message
         fflush(stdout);
-        foreground_only_mode = 1;             // set foreground only mode
-        kill(foreground_process_id, SIGTERM); // terminate the foreground process
-        foreground_process_id = -1;           // reset foreground process id
+        foreground_only_mode = 1; // set foreground only mode
     }
     else
     {
