@@ -365,11 +365,6 @@ int main()
                     token = strtok(NULL, " \n");
                     cmd.output_file = token;
                 }
-                else if (strcmp(token, "&") == 0)
-                {
-                    // Background process
-                    cmd.background = 1;
-                }
                 else
                 {
                     // Command or argument
@@ -384,11 +379,19 @@ int main()
             }
             cmd.arguments[argument_count] = NULL;
 
-            // Execute the command
-            int current = handleCommand(cmd, &status);
+            // Check for background process
+            if (argument_count > 0 && strcmp(cmd.arguments[argument_count - 1], "&") == 0)
+            {
+                // Background process
+                cmd.background = 1;
+                cmd.arguments[argument_count - 1] = NULL;
+            }
 
-            printf("%d\n", current);
-            // Free the memory allocated for the command
+            // Execute the command, succesful function will return the current mode
+            int current_mode = handleCommand(cmd, &status);
+
+            // printf("%d\n", current_mode);
+            //  Free the memory allocated for the command
             free(command_line);
         }
         else
