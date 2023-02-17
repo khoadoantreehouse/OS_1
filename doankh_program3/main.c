@@ -240,6 +240,87 @@ void handle_SIGTSTP(int signo)
     }
 }
 
+void handleCommand(struct command cmd, int *status)
+{
+    if (strcmp(cmd.name, "exit") == 0)
+    {
+        exit(0); // terminate the shell
+    }
+    else if (strcmp(cmd.name, "cd") == 0)
+    {
+        // change directory
+        changeDirectory(cmd.arguments[1]);
+    }
+    else if (strcmp(cmd.name, "status") == 0)
+    {
+        // print the exit status or signal of the last foreground process
+        printStatus(*status);
+    }
+    else
+    {
+        // ignore SIGINT in the parent process
+        signal(SIGINT, SIG_IGN);
+        // register handler for SIGTSTP signal
+        struct sigaction SIGTSTP_action = {0};
+        SIGTSTP_action.sa_handler = handle_SIGTSTP;
+        sigfillset(&SIGTSTP_action.sa_mask);
+        SIGTSTP_action.sa_flags = SA_RESTART;
+        sigaction(SIGTSTP, &SIGTSTP_action, NULL);
+
+        pid_t pid = fork();
+        if (pid == -1)
+        {
+            perror("fork");
+            *status = 1;
+            exit(1);
+        }
+        else if (pid == 0)
+        {
+            // ignore SIGINT in the child process
+            signal(SIGINT, SIG_IGN);
+            if (foreground_only == 1)
+                cmd.background = 0;
+
+            if (cmd.background == 0)
+            {
+                // if running in foreground, handle SIGINT with default action
+                signal(SIGINT, SIG_DFL);
+                // ignore SIGTSTP in the foreground child process
+                signal(SIGTSTP, SIG_IGN);
+            }
+            executeCommandWithRedirection(cmd, status);
+        }
+        else
+        {
+            // parent process
+            if (cmd.background == 0 || foreground_only == 1)
+            {
+                // wait for the child process to finish, if not a background process or in foreground-only mode
+                int child_status;
+                pid_t wpid = waitpid(pid, &child_status, 0);
+
+                *status = child_status;
+                // print signal number if the child was terminated by a signal
+                if (WIFSIGNALED(child_status))
+                {
+                    char buf[256];
+                    sprintf(buf, "Terminated by signal %d\n", WTERMSIG(child_status));
+                    write(STDOUT_FILENO, buf, strlen(buf));
+                }
+            }
+            else if (foreground_only != 1)
+            {
+                printf("background pid is %d\n", pid);
+                background_processes[num_background_processes] = pid; // add the background process to the list
+                num_background_processes++;                           // increment the number of background processes
+            }
+
+            // check if any background processes have completed
+            checkBackgroundProcess(status);
+        }
+    }
+}
+
 int status = 0; // Global status keeps track of the recent exit status -> read and write status to memory slot
 
 int main()
@@ -300,55 +381,8 @@ int main()
             }
             cmd.arguments[argument_count] = NULL;
 
-            if (strcmp(cmd.name, "exit") == 0)
-            {
-                exit(0); // terminate the shell
-            }
-            else if (strcmp(cmd.name, "cd") == 0)
-            {
-                // change directory
-                changeDirectory(cmd.arguments[1]);
-            }
-            else if (strcmp(cmd.name, "status") == 0)
-            {
-                // print the exit status or signal of the last foreground process
-                printStatus(status);
-            }
-            else
-            {
-                // ignore SIGINT in the parent process
-                signal(SIGINT, SIG_IGN);
-                // register handler for SIGTSTP signal
-                struct sigaction SIGTSTP_action = {0};
-                SIGTSTP_action.sa_handler = handle_SIGTSTP;
-                sigfillset(&SIGTSTP_action.sa_mask);
-                SIGTSTP_action.sa_flags = SA_RESTART;
-                sigaction(SIGTSTP, &SIGTSTP_action, NULL);
-
-                pid_t pid = fork();
-                if (pid == -1)
-                {
-                    perror("fork");
-                    status = 1;
-                    exit(1);
-                }
-                else if (pid == 0)
-                {
-                    // ignore SIGINT in the child process
-                    signal(SIGINT, SIG_IGN);
-                    if (foreground_only == 1)
-                        cmd.background = 0;
-
-                    if (cmd.background == 0)
-                    {
-                        // if running in foreground, handle SIGINT with default action
-                        signal(SIGINT, SIG_DFL);
-                        // ignore SIGTSTP in the foreground child process
-                        signal(SIGTSTP, SIG_IGN);
-                    }
-                    executeCommandWithRedirection(cmd, &status);
-                }
-            }
+            // Execute the command
+            handleCommand(cmd, &status);
 
             // Free the memory allocated for the command
             free(command_line);
