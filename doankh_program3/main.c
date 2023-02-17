@@ -212,7 +212,7 @@ void checkBackgroundProcess(int *status)
     }
 }
 
-volatile int foreground_only_mode = 1; // This variable is used to check if background process is enabled
+volatile int foreground_only_mode = 0; // This variable is used to check if background process is enabled
 // The reason why we need volatile keyword is because when a signal is fired
 // there is no way to indicate whether the variable value is changing or not in the code
 // so we need constantly load the variable. The volatile keyword indicate that the value of this variable can change anytime
