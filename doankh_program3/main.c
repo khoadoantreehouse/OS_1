@@ -383,7 +383,7 @@ int main()
             cmd.arguments[argument_count] = NULL;
 
             // Execute the command
-            while (handleCommand(cmd, &status))
+            while (!handleCommand(cmd, &status))
                 sleep(0.1);
 
             // Free the memory allocated for the command
