@@ -99,10 +99,15 @@ int main(int argc, char *argv[])
         exit(2);
     }
 
-    // Send plaintext and key to server
+    int n = 0;
+    // Send program name to server
     char buffer[BUFFER_SIZE];
     memset(buffer, 0, BUFFER_SIZE);
-    int n;
+    sprintf(buffer, "%s\n", argv[0]);
+    write(sockfd, buffer, strlen(buffer));
+    memset(buffer, 0, BUFFER_SIZE);
+
+    // Send plaintext and key to server
     FILE *plaintext_file2 = fopen(plaintext, "r");
     while ((n = fread(buffer, 1, BUFFER_SIZE, plaintext_file2)) > 0)
     {
