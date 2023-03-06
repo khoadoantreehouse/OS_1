@@ -8,6 +8,7 @@
 !*.csv
 !README.md
 !p3testscript
+!*.txt
 # etc...
 
 # ...even if they are in subdirectories
