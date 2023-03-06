@@ -47,6 +47,10 @@ int main(int argc, char *argv[])
         error("Error opening socket");
     }
 
+    // set SO_REUSEADDR option
+    int optval = 1;
+    setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof optval);
+
     // bind socket to port
     struct sockaddr_in serv_addr, cli_addr;
     memset((char *)&serv_addr, 0, sizeof(serv_addr));
