@@ -29,7 +29,7 @@ int main(int argc, char *argv[])
 {
     if (argc != 2)
     {
-        error("Usage: enc_server <listening_port>");
+        error("Usage: dec_server <listening_port>");
     }
 
     int port = atoi(argv[1]);
@@ -96,9 +96,9 @@ int main(int argc, char *argv[])
                 error("Error reading from socket");
             }
 
-            if (strcmp(buffer, "enc_client") != 0)
+            if (strcmp(buffer, "dec_client") != 0)
             {
-                printf("%d\n", strcmp(buffer, "enc_client"));
+                printf("%d\n", strcmp(buffer, "dec_client"));
                 error("Error: not a valid client");
             }
 
