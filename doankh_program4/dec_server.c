@@ -60,6 +60,7 @@ int main(int argc, char *argv[])
             continue;
         }
 
+        printf("Here");
         // Receive ciphertext and key from client
         memset(buffer, 0, BUFFER_SIZE);
         int ciphertext_size;
