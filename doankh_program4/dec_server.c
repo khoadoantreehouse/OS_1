@@ -15,20 +15,20 @@ void error(const char *msg)
     exit(1);
 }
 
-char my_decrypt(char encrypted_text, char key)
+char my_decrypt(char ciphertext, char key)
 {
-    if (encrypted_text == key)
+    if (ciphertext == ' ')
     {
-        return ' ';
+        return key;
     }
     else
     {
-        int diff = (encrypted_text - 'A') - (key - 'A');
-        if (diff < 0)
+        int plaintext_val = ((ciphertext - 'A') - (key - 'A')) % 27;
+        if (plaintext_val < 0)
         {
-            diff += 27;
+            plaintext_val += 27;
         }
-        return diff + 'A';
+        return plaintext_val + 'A';
     }
 }
 
