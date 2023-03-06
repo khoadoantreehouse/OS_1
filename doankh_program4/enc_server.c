@@ -23,7 +23,7 @@ char my_encrypt(char plaintext, char key)
     }
     else
     {
-        return ((plaintext - 'A' + key - 'A') % 26) + 'A';
+        return ((plaintext - 'A' + key - 'A') % 27) + 'A';
     }
 }
 

@@ -26,7 +26,7 @@ char my_decrypt(char encrypted_text, char key)
         int diff = (encrypted_text - 'A') - (key - 'A');
         if (diff < 0)
         {
-            diff += 26;
+            diff += 27;
         }
         return diff + 'A';
     }
