@@ -132,8 +132,8 @@ int main(int argc, char *argv[])
     // Send program name to server
     char buffer[BUFFER_SIZE];
     memset(buffer, 0, BUFFER_SIZE);
+    printf("%s\n", argv[0]);
     sprintf(buffer, "%s", argv[0]);
-    printf("%s\n", buffer);
     write(sockfd, buffer, strlen(buffer));
     memset(buffer, 0, BUFFER_SIZE);
     // Send ciphertext and key to server
