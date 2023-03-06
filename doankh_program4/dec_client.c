@@ -128,7 +128,8 @@ int main(int argc, char *argv[])
         fprintf(stderr, "Error: could not connect to server on port %d\n", port);
         exit(2);
     }
-
+    fprintf(stderr, "Here");
+    exit(1);
     // Check if connected to dec_server
     char buffer[BUFFER_SIZE];
     memset(buffer, 0, BUFFER_SIZE);
@@ -136,8 +137,7 @@ int main(int argc, char *argv[])
     write(sockfd, buffer, strlen(buffer));
     memset(buffer, 0, BUFFER_SIZE);
     read(sockfd, buffer, BUFFER_SIZE - 1);
-    fprintf(stderr, "Here");
-    exit(1);
+
     if (strcmp(buffer, "dec_server") != 0)
     {
         fprintf(stderr, "Error: cannot connect to encryption server on port %d\n", port);
