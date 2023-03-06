@@ -129,6 +129,7 @@ int main(int argc, char *argv[])
             for (i = 0; i < strlen(ciphertext); i++)
             {
                 ciphertext[i] = my_decrypt(ciphertext[i], key[i]);
+                printf("%s ", ciphertext[i]);
             }
 
             // send ciphertext back to client
