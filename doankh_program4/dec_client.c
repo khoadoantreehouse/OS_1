@@ -122,8 +122,6 @@ int main(int argc, char *argv[])
     serv_addr.sin_family = AF_INET;
     memcpy((char *)&serv_addr.sin_addr.s_addr, (char *)server->h_addr_list[0], server->h_length);
     serv_addr.sin_port = htons(port);
-    fprintf(stderr, "Here");
-    exit(1);
 
     if (connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
     {
@@ -138,6 +136,8 @@ int main(int argc, char *argv[])
     write(sockfd, buffer, strlen(buffer));
     memset(buffer, 0, BUFFER_SIZE);
     read(sockfd, buffer, BUFFER_SIZE - 1);
+    fprintf(stderr, "Here");
+    exit(1);
     if (strcmp(buffer, "dec_server") != 0)
     {
         fprintf(stderr, "Error: cannot connect to encryption server on port %d\n", port);
