@@ -99,7 +99,8 @@ int main(int argc, char *argv[])
     //     exit(1);
     // }
 
-    printf("Ciphertext validation completed");
+    fprintf(stderr, "Error: validation failed\n");
+    exit(1);
     // Create a socket and connect to the server
     int sockfd, n;
     struct sockaddr_in serv_addr;
