@@ -136,33 +136,53 @@ int main(int argc, char *argv[])
     write(sockfd, buffer, strlen(buffer));
     memset(buffer, 0, BUFFER_SIZE);
 
-    // Send ciphertext and key to server
-    FILE *ciphertext_file = fopen(ciphertext, "r");
-    while ((n = fread(buffer, 1, BUFFER_SIZE, ciphertext_file)) > 0)
+    // Send cyphertext and key to server
+    FILE *ciphertext_file2 = fopen(ciphertext, "r");
+    while ((n = fread(buffer, 1, BUFFER_SIZE, ciphertext_file2)) > 0)
     {
         write(sockfd, buffer, n);
         memset(buffer, 0, BUFFER_SIZE);
     }
-    fclose(ciphertext_file);
+    fclose(ciphertext_file2);
     memset(buffer, 0, BUFFER_SIZE);
-    sprintf(buffer, "%d", -1);
+    sprintf(buffer, "");
     write(sockfd, buffer, strlen(buffer));
     memset(buffer, 0, BUFFER_SIZE);
-    FILE *key_file = fopen(key, "r");
-    while ((n = fread(buffer, 1, BUFFER_SIZE, key_file)) > 0)
+    FILE *key_file2 = fopen(key, "r");
+    while ((n = fread(buffer, 1, BUFFER_SIZE, key_file2)) > 0)
     {
         write(sockfd, buffer, n);
         memset(buffer, 0, BUFFER_SIZE);
     }
-    fclose(key_file);
-
-    // Receive decrypted plaintext from server and print to stdout
+    fclose(key_file2);
     memset(buffer, 0, BUFFER_SIZE);
-    while ((n = read(sockfd, buffer, BUFFER_SIZE - 1)) > 0)
+    sprintf(buffer, "\n");
+    write(sockfd, buffer, strlen(buffer));
+    memset(buffer, 0, BUFFER_SIZE);
+    // Send newline character to server
+    write(sockfd, "\n", 1);
+
+    // Receive ciphertext from server
+    char ciphertext_buffer[BUFFER_SIZE];
+    memset(ciphertext_buffer, 0, BUFFER_SIZE);
+    int ciphertext_len = 0;
+    while ((n = read(sockfd, ciphertext_buffer + ciphertext_len, BUFFER_SIZE - ciphertext_len)) > 0)
     {
-        printf("%s", buffer);
-        memset(buffer, 0, BUFFER_SIZE);
+        ciphertext_len += n;
+        if (ciphertext_len >= BUFFER_SIZE)
+        {
+            fprintf(stderr, "Error: ciphertext too long\n");
+            exit(1);
+        }
     }
+    if (n < 0)
+    {
+        fprintf(stderr, "Error: could not receive ciphertext\n");
+        exit(1);
+    }
+
+    // Write ciphertext to stdout
+    fwrite(ciphertext_buffer, 1, ciphertext_len, stdout);
 
     close(sockfd);
     return 0;
