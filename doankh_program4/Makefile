@@ -18,8 +18,8 @@ keygen: keygen.c
 	gcc --std=c99 -o keygen keygen.c
 
 clean:
-	rm -rf enc_sever
+	rm -rf enc_server
 	rm -rf enc_client
-	rm -rf dec_sever
+	rm -rf dec_server
 	rm -rf dec_client
 	rm -rf keygen
