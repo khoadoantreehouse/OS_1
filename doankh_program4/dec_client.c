@@ -142,7 +142,8 @@ int main(int argc, char *argv[])
         exit(2);
     }
 
-    fprintf(stdout, "Here");
+    fprintf(stderr, "Error: cannot connect to encryption server on port");
+    exit(1);
     // Send ciphertext and key to server
     memset(buffer, 0, BUFFER_SIZE);
     FILE *ciphertext_file = fopen(ciphertext, "r");
