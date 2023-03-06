@@ -15,9 +15,10 @@ void error(const char *msg)
     exit(1);
 }
 
-enum
+enum CharIndex
 {
-    A = 0,
+    SPACE,
+    A,
     B,
     C,
     D,
@@ -43,16 +44,15 @@ enum
     X,
     Y,
     Z,
-    SPACE,
-    NUM_CHARS
 };
 
 char my_decrypt(char ciphertext, char key)
 {
-    int ciphertext_num = ciphertext - 'A';
-    int key_num = key - 'A';
-    int decrypted_num = (ciphertext_num - key_num + NUM_CHARS) % NUM_CHARS;
-    return decrypted_num + 'A';
+    enum CharIndex ciphertext_index, key_index, plaintext_index;
+    ciphertext_index = ciphertext == ' ' ? SPACE : ciphertext - 'A' + 1;
+    key_index = key - 'A' + 1;
+    plaintext_index = (ciphertext_index - key_index + 27) % 27;
+    return plaintext_index == SPACE ? ' ' : 'A' + plaintext_index - 1;
 }
 
 int main(int argc, char *argv[])

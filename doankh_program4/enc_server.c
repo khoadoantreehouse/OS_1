@@ -15,12 +15,10 @@ void error(const char *msg)
     exit(1);
 }
 
-#include <stdio.h>
-#include <stdlib.h>
-
-enum
+enum CharIndex
 {
-    A = 0,
+    SPACE,
+    A,
     B,
     C,
     D,
@@ -46,16 +44,15 @@ enum
     X,
     Y,
     Z,
-    SPACE,
-    NUM_CHARS
 };
 
 char my_encrypt(char plaintext, char key)
 {
-    int plaintext_num = plaintext - 'A';
-    int key_num = key - 'A';
-    int encrypted_num = (plaintext_num + key_num) % NUM_CHARS;
-    return encrypted_num + 'A';
+    enum CharIndex plaintext_index, key_index, ciphertext_index;
+    plaintext_index = plaintext == ' ' ? SPACE : plaintext - 'A' + 1;
+    key_index = key - 'A' + 1;
+    ciphertext_index = (plaintext_index + key_index) % 27;
+    return ciphertext_index == SPACE ? ' ' : 'A' + ciphertext_index - 1;
 }
 
 int main(int argc, char *argv[])
