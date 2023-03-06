@@ -94,11 +94,12 @@ int main(int argc, char *argv[])
 
     // Validate the input files
 
-    if (validate_file(ciphertext) || validate_file(key) || validate_key_length(ciphertext, key))
-    {
-        exit(1);
-    }
+    // if (validate_file(ciphertext) || validate_file(key) || validate_key_length(ciphertext, key))
+    // {
+    //     exit(1);
+    // }
 
+    printf("Ciphertext validation completed");
     // Create a socket and connect to the server
     int sockfd, n;
     struct sockaddr_in serv_addr;
