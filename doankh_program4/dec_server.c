@@ -15,14 +15,21 @@ void error(const char *msg)
     exit(1);
 }
 
-char my_decrypt(char ciphertext, char key)
+char my_decrypt(char encrypted_text, char key)
 {
-    char plaintext = ciphertext - key;
-    if (plaintext < ' ')
+    if (encrypted_text == key)
     {
-        plaintext += 95;
+        return ' ';
     }
-    return plaintext;
+    else
+    {
+        int diff = (encrypted_text - 'A') - (key - 'A');
+        if (diff < 0)
+        {
+            diff += 26;
+        }
+        return diff + 'A';
+    }
 }
 
 int main(int argc, char *argv[])
