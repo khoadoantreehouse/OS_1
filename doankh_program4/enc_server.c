@@ -15,16 +15,47 @@ void error(const char *msg)
     exit(1);
 }
 
+#include <stdio.h>
+#include <stdlib.h>
+
+enum
+{
+    A = 0,
+    B,
+    C,
+    D,
+    E,
+    F,
+    G,
+    H,
+    I,
+    J,
+    K,
+    L,
+    M,
+    N,
+    O,
+    P,
+    Q,
+    R,
+    S,
+    T,
+    U,
+    V,
+    W,
+    X,
+    Y,
+    Z,
+    SPACE,
+    NUM_CHARS
+};
+
 char my_encrypt(char plaintext, char key)
 {
-    if (plaintext == ' ')
-    {
-        return key;
-    }
-    else
-    {
-        return ((plaintext - 'A' + key - 'A' + 1) % 27) + 'A';
-    }
+    int plaintext_num = plaintext - 'A';
+    int key_num = key - 'A';
+    int encrypted_num = (plaintext_num + key_num) % NUM_CHARS;
+    return encrypted_num + 'A';
 }
 
 int main(int argc, char *argv[])

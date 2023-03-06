@@ -15,25 +15,44 @@ void error(const char *msg)
     exit(1);
 }
 
+enum
+{
+    A = 0,
+    B,
+    C,
+    D,
+    E,
+    F,
+    G,
+    H,
+    I,
+    J,
+    K,
+    L,
+    M,
+    N,
+    O,
+    P,
+    Q,
+    R,
+    S,
+    T,
+    U,
+    V,
+    W,
+    X,
+    Y,
+    Z,
+    SPACE,
+    NUM_CHARS
+};
+
 char my_decrypt(char ciphertext, char key)
 {
-    if (ciphertext == ' ')
-    {
-        return key;
-    }
-    else
-    {
-        int plaintext = ((ciphertext - 'A') - (key - 'A') + 27) % 27;
-        if (plaintext == 26)
-        {
-            plaintext = ' ';
-        }
-        else
-        {
-            plaintext += 'A';
-        }
-        return plaintext;
-    }
+    int ciphertext_num = ciphertext - 'A';
+    int key_num = key - 'A';
+    int decrypted_num = (ciphertext_num - key_num + NUM_CHARS) % NUM_CHARS;
+    return decrypted_num + 'A';
 }
 
 int main(int argc, char *argv[])
