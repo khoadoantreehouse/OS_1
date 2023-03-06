@@ -125,13 +125,11 @@ int main(int argc, char *argv[])
                 error("Error reading from socket");
             }
 
-            printf("%s\n", ciphertext);
             // perform decryption
             size_t key_len = strlen(key);
             for (i = 0; i < strlen(ciphertext); i++)
             {
                 ciphertext[i] = my_decrypt(ciphertext[i], key[i % key_len]);
-                printf("%s ", ciphertext[i]);
             }
 
             // send ciphertext back to client
