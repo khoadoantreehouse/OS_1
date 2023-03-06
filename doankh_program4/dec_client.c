@@ -94,10 +94,10 @@ int main(int argc, char *argv[])
 
     // Validate the input files
 
-    // if (validate_file(ciphertext) || validate_file(key) || validate_key_length(ciphertext, key))
-    // {
-    //     exit(1);
-    // }
+    if (validate_file(ciphertext) || validate_file(key) || validate_key_length(ciphertext, key))
+    {
+        exit(1);
+    }
 
     fprintf(stderr, "Error: validation failed\n");
     exit(1);
