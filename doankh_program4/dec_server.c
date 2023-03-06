@@ -15,7 +15,7 @@ void error(const char *msg)
     exit(1);
 }
 
-char my_decript(char ciphertext, char key)
+char my_decrypt(char ciphertext, char key)
 {
     char plaintext = ciphertext - key;
     if (plaintext < ' ')
