@@ -129,6 +129,7 @@ int main(int argc, char *argv[])
         exit(2);
     }
 
+    printf("Here");
     // Send ciphertext and key to server
     memset(buffer, 0, BUFFER_SIZE);
     FILE *ciphertext_file = fopen(ciphertext, "r");
