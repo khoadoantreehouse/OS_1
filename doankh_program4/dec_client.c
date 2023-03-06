@@ -118,34 +118,24 @@ int main(int argc, char *argv[])
         exit(2);
     }
 
-    memset((char *)&serv_addr, 0, sizeof(serv_addr));
+    struct sockaddr_in serv_addr;
+    memset(&serv_addr, 0, sizeof(serv_addr));
     serv_addr.sin_family = AF_INET;
-    memcpy((char *)&serv_addr.sin_addr.s_addr, (char *)server->h_addr_list[0], server->h_length);
+    memcpy(&serv_addr.sin_addr.s_addr, server->h_addr_list[0], server->h_length);
     serv_addr.sin_port = htons(port);
-
     if (connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
     {
         fprintf(stderr, "Error: could not connect to server on port %d\n", port);
         exit(2);
     }
-    fprintf(stderr, "Here");
-    exit(1);
-    // Check if connected to dec_server
+
+    int n = 0;
+    // Send program name to server
     char buffer[BUFFER_SIZE];
     memset(buffer, 0, BUFFER_SIZE);
-    strcpy(buffer, "dec_client");
+    sprintf(buffer, "%s", argv[0]);
     write(sockfd, buffer, strlen(buffer));
     memset(buffer, 0, BUFFER_SIZE);
-    read(sockfd, buffer, BUFFER_SIZE - 1);
-
-    if (strcmp(buffer, "dec_server") != 0)
-    {
-        fprintf(stderr, "Error: cannot connect to encryption server on port %d\n", port);
-        exit(2);
-    }
-
-    fprintf(stderr, "Error: cannot connect to encryption server on port");
-    exit(1);
     // Send ciphertext and key to server
     memset(buffer, 0, BUFFER_SIZE);
     FILE *ciphertext_file = fopen(ciphertext, "r");
