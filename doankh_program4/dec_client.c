@@ -133,11 +133,10 @@ int main(int argc, char *argv[])
     char buffer[BUFFER_SIZE];
     memset(buffer, 0, BUFFER_SIZE);
     sprintf(buffer, "%s", argv[0]);
-    printf("%s\n", buffer);
     write(sockfd, buffer, strlen(buffer));
     memset(buffer, 0, BUFFER_SIZE);
+
     // Send ciphertext and key to server
-    memset(buffer, 0, BUFFER_SIZE);
     FILE *ciphertext_file = fopen(ciphertext, "r");
     while ((n = fread(buffer, 1, BUFFER_SIZE, ciphertext_file)) > 0)
     {
