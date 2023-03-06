@@ -30,9 +30,9 @@ char my_encrypt(char plaintext, char key)
 
 int main(int argc, char *argv[])
 {
-    if (argc != 4)
+    if (argc != 2)
     {
-        fprintf(stderr, "Usage: %s plaintext key port\n", argv[0]);
+        fprintf(stderr, "Usage: %s listening_port\n", argv[0]);
         exit(1);
     }
 
