@@ -91,7 +91,6 @@ int main(int argc, char *argv[])
             // verify client identity
             memset(buffer, 0, 2048);
             n = read(clientfd, buffer, 2047);
-            printf("%s\n", buffer);
 
             if (n < 0)
             {
