@@ -91,7 +91,7 @@ int main(int argc, char *argv[])
     struct sockaddr_in serv_addr;
     memset(&serv_addr, 0, sizeof(serv_addr));
     serv_addr.sin_family = AF_INET;
-    memcpy(&serv_addr.sin_addr.s_addr, server->h_addr, server->h_length);
+    memcpy(&serv_addr.sin_addr.s_addr, server->h_addr_list[0], server->h_length);
     serv_addr.sin_port = htons(port);
     if (connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
     {
@@ -125,14 +125,36 @@ int main(int argc, char *argv[])
     sprintf(buffer, "\n");
     write(sockfd, buffer, strlen(buffer));
     memset(buffer, 0, BUFFER_SIZE);
+    // Send newline character to server
+    write(sockfd, "\n", 1);
 
     // Receive ciphertext from server
-    FILE *ciphertext_file = fopen("ciphertext", "w");
-    while ((n = read(sockfd, buffer, BUFFER_SIZE)) > 0)
+    char ciphertext_buffer[BUFFER_SIZE];
+    memset(ciphertext_buffer, 0, BUFFER_SIZE);
+    int ciphertext_len = 0;
+    while ((n = read(sockfd, ciphertext_buffer + ciphertext_len, BUFFER_SIZE - ciphertext_len)) > 0)
     {
-        fwrite(buffer, 1, n, ciphertext_file);
-        memset(buffer, 0, BUFFER_SIZE);
+        ciphertext_len += n;
+        if (ciphertext_len >= BUFFER_SIZE)
+        {
+            fprintf(stderr, "Error: ciphertext too long\n");
+            exit(1);
+        }
     }
+    if (n < 0)
+    {
+        fprintf(stderr, "Error: could not receive ciphertext\n");
+        exit(1);
+    }
+
+    // Write ciphertext to file
+    FILE *ciphertext_file = fopen("ciphertext", "w");
+    if (!ciphertext_file)
+    {
+        fprintf(stderr, "Error: could not open ciphertext file\n");
+        exit(1);
+    }
+    fwrite(ciphertext_buffer, 1, ciphertext_len, ciphertext_file);
     fclose(ciphertext_file);
 
     close(sockfd);
