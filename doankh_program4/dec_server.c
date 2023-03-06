@@ -125,6 +125,7 @@ int main(int argc, char *argv[])
                 error("Error reading from socket");
             }
 
+            printf("%s\n", ciphertext);
             // perform decryption
             for (i = 0; i < strlen(ciphertext); i++)
             {
