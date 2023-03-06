@@ -118,7 +118,6 @@ int main(int argc, char *argv[])
         exit(2);
     }
 
-    printf("%s\n", argv[0]);
     memset(&serv_addr, 0, sizeof(serv_addr));
     serv_addr.sin_family = AF_INET;
     memcpy(&serv_addr.sin_addr.s_addr, server->h_addr_list[0], server->h_length);
@@ -133,8 +132,8 @@ int main(int argc, char *argv[])
     // Send program name to server
     char buffer[BUFFER_SIZE];
     memset(buffer, 0, BUFFER_SIZE);
-
     sprintf(buffer, "%s", argv[0]);
+    printf("%s\n", buffer);
     write(sockfd, buffer, strlen(buffer));
     memset(buffer, 0, BUFFER_SIZE);
     // Send ciphertext and key to server
