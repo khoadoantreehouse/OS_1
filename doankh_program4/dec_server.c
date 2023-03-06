@@ -128,8 +128,6 @@ int main(int argc, char *argv[])
             // perform decryption
             for (i = 0; i < strlen(ciphertext); i++)
             {
-                ciphertext[i] = toupper(ciphertext[i]);
-                key[i] = toupper(key[i]);
                 ciphertext[i] = my_decrypt(ciphertext[i], key[i]);
             }
 
