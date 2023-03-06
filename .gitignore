@@ -7,9 +7,8 @@
 !Makefile
 !*.csv
 !README.md
-!p3testscript
-!p5testscript
-!*.txt
+!*testscript
+!plaintext*
 # etc...
 
 # ...even if they are in subdirectories
