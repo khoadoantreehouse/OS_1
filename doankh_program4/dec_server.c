@@ -23,12 +23,16 @@ char my_decrypt(char ciphertext, char key)
     }
     else
     {
-        int plaintext_val = ((ciphertext - 'A') - (key - 'A')) % 27;
-        if (plaintext_val < 0)
+        int plaintext = ((ciphertext - 'A') - (key - 'A') + 27) % 27;
+        if (plaintext == 26)
         {
-            plaintext_val += 27;
+            plaintext = ' ';
         }
-        return plaintext_val + 'A';
+        else
+        {
+            plaintext += 'A';
+        }
+        return plaintext;
     }
 }
 
