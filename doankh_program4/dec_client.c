@@ -34,7 +34,7 @@ int validate_file(char *filename)
     return 0;
 }
 
-// Function to check if the key is long enough for the given plaintext
+/// Function to check if the key is long enough for the given plaintext
 // Returns 0 if the key is long enough, otherwise returns 1
 int validate_key_length(char *plaintext_filename, char *key_filename)
 {
@@ -46,16 +46,28 @@ int validate_key_length(char *plaintext_filename, char *key_filename)
         return 1;
     }
     int plaintext_size = 0, key_size = 0;
-    char c;
-    while ((c = fgetc(plaintext_file)) != EOF)
+    char plaintext_buffer[BUFFER_SIZE];
+    char key_buffer[BUFFER_SIZE];
+    memset(plaintext_buffer, 0, BUFFER_SIZE);
+    memset(key_buffer, 0, BUFFER_SIZE);
+    int n;
+    while ((n = fread(plaintext_buffer, 1, BUFFER_SIZE, plaintext_file)) > 0)
     {
-        if (c != ' ')
-            plaintext_size++;
+        for (int i = 0; i < n; i++)
+        {
+            if (plaintext_buffer[i] != ' ')
+                plaintext_size++;
+        }
+        memset(plaintext_buffer, 0, BUFFER_SIZE);
     }
-    while ((c = fgetc(key_file)) != EOF)
+    while ((n = fread(key_buffer, 1, BUFFER_SIZE, key_file)) > 0)
     {
-        if (c != ' ')
-            key_size++;
+        for (int i = 0; i < n; i++)
+        {
+            if (key_buffer[i] != ' ')
+                key_size++;
+        }
+        memset(key_buffer, 0, BUFFER_SIZE);
     }
     fclose(plaintext_file);
     fclose(key_file);
