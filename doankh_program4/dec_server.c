@@ -98,6 +98,7 @@ int main(int argc, char *argv[])
 
             if (strcmp(buffer, "dec_client") != 0)
             {
+                printf("%s\n", buffer);
                 printf("%d\n", strcmp(buffer, "dec_client"));
                 error("Error: not a valid client");
             }
