@@ -98,7 +98,6 @@ int main(int argc, char *argv[])
     {
         exit(1);
     }
-    printf("%s\n", argv[0]);
 
     // Create a socket and connect to the server
     int sockfd;
