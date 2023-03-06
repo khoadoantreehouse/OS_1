@@ -100,7 +100,7 @@ int main(int argc, char *argv[])
     }
 
     // Create a socket and connect to the server
-    int sockfd, n;
+    int sockfd;
     struct sockaddr_in serv_addr;
     struct hostent *server;
 
