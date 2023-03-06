@@ -20,10 +20,10 @@ int validate_file(char *filename)
         fprintf(stderr, "Error: could not open file %s\n", filename);
         return 1;
     }
-    char c;
+    int c;
     while ((c = fgetc(file)) != EOF)
     {
-        if (c != ' ' && (c < 'A' || c > 'Z'))
+        if (c != ' ' && c != '\n' && (c < 'A' || c > 'Z'))
         {
             fclose(file);
             fprintf(stderr, "Error: invalid character in file %s\n", filename);
