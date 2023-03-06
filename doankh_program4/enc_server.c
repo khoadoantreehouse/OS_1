@@ -100,6 +100,7 @@ int main(int argc, char *argv[])
 
             if (strcmp(buffer, "enc_client") != 0)
             {
+                printf("%s\n", buffer);
                 error("Error: not a valid client");
             }
 
