@@ -1,6 +1,6 @@
 all: main
 
-main: enc_sever enc_client dec_sever dec_client keygen
+main: enc_server enc_client dec_server dec_client keygen
 
 enc_server: enc_server.c
 	gcc --std=c99 -o enc_server enc_server.c
