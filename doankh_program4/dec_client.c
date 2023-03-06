@@ -93,11 +93,11 @@ int main(int argc, char *argv[])
     int port = atoi(argv[3]);
 
     // Validate the input files
-    //
-    // if (validate_file(ciphertext) || validate_file(key) || validate_key_length(ciphertext, key))
-    // {
-    //     exit(1);
-    // }
+
+    if (validate_file(ciphertext) || validate_file(key) || validate_key_length(ciphertext, key))
+    {
+        exit(1);
+    }
 
     // Create a socket and connect to the server
     int sockfd, n;
