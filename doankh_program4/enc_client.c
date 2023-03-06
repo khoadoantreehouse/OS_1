@@ -152,15 +152,8 @@ int main(int argc, char *argv[])
         exit(1);
     }
 
-    // Write ciphertext to file
-    FILE *ciphertext_file = fopen("ciphertext", "w");
-    if (!ciphertext_file)
-    {
-        fprintf(stderr, "Error: could not open ciphertext file\n");
-        exit(1);
-    }
-    fwrite(ciphertext_buffer, 1, ciphertext_len, ciphertext_file);
-    fclose(ciphertext_file);
+    // Write ciphertext to stdout
+    fwrite(ciphertext_buffer, 1, ciphertext_len, stdout);
 
     close(sockfd);
     return 0;
