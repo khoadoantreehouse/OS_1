@@ -15,44 +15,26 @@ void error(const char *msg)
     exit(1);
 }
 
-enum CharIndex
+char *encrypt(char *message, char *key)
 {
-    SPACE,
-    A,
-    B,
-    C,
-    D,
-    E,
-    F,
-    G,
-    H,
-    I,
-    J,
-    K,
-    L,
-    M,
-    N,
-    O,
-    P,
-    Q,
-    R,
-    S,
-    T,
-    U,
-    V,
-    W,
-    X,
-    Y,
-    Z,
-};
-
-char my_encrypt(char plaintext, char key)
-{
-    enum CharIndex plaintext_index, key_index, ciphertext_index;
-    plaintext_index = plaintext == ' ' ? SPACE : plaintext - 'A' + 1;
-    key_index = key - 'A' + 1;
-    ciphertext_index = (plaintext_index + key_index) % 27;
-    return ciphertext_index == SPACE ? ' ' : 'A' + ciphertext_index - 1;
+    char *ciphertext = (char *)malloc((strlen(message) + 1) * sizeof(char));
+    int i;
+    for (i = 0; i < strlen(message); i++)
+    {
+        int messageVal = message[i] - 'A';
+        int keyVal = key[i] - 'A';
+        if (messageVal == -33)
+            messageVal = 26;
+        if (keyVal == -33)
+            keyVal = 26;
+        int sum = messageVal + keyVal;
+        int cipherVal = sum % 27;
+        ciphertext[i] = cipherVal + 'A';
+        if (cipherVal == 26)
+            ciphertext[i] = ' ';
+    }
+    ciphertext[i] = '\0';
+    return ciphertext;
 }
 
 int main(int argc, char *argv[])
@@ -96,7 +78,8 @@ int main(int argc, char *argv[])
     // handle client connections
     socklen_t clilen = sizeof(cli_addr);
     int clientfd, pid;
-    char buffer[2048], key[2048], ciphertext[2048];
+    char buffer[2048];
+    char *key, ciphertext, encrypted;
     int n, i;
 
     while (1)
@@ -149,15 +132,9 @@ int main(int argc, char *argv[])
             }
 
             // perform encryption
-            for (i = 0; i < strlen(ciphertext); i++)
-            {
-                ciphertext[i] = toupper(ciphertext[i]);
-                key[i] = toupper(key[i]);
-                ciphertext[i] = my_encrypt(ciphertext[i], key[i]);
-            }
-
+            encrypted = encrypt(ciphertext, key);
             // send ciphertext back to client
-            n = write(clientfd, ciphertext, strlen(ciphertext));
+            n = write(clientfd, encrypted, strlen(encrypted));
             if (n < 0)
             {
                 error("Error writing to socket");
