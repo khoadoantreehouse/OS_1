@@ -118,7 +118,6 @@ int main(int argc, char *argv[])
         exit(2);
     }
 
-    struct sockaddr_in serv_addr;
     memset(&serv_addr, 0, sizeof(serv_addr));
     serv_addr.sin_family = AF_INET;
     memcpy(&serv_addr.sin_addr.s_addr, server->h_addr_list[0], server->h_length);
