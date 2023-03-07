@@ -8,7 +8,7 @@
 #include <netinet/in.h>
 #include <netdb.h>
 
-#define BUFFER_SIZE 2048
+#define BUFFER_SIZE 128000
 
 // Function to check if a given file contains only valid characters
 // Returns 0 if the file is valid, otherwise returns 1

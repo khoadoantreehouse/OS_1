@@ -8,6 +8,7 @@
 #include <netinet/in.h>
 
 #define MAX_CLIENTS 5
+#define BUFFER_SIZE 128000
 
 void error(const char *msg)
 {
@@ -77,7 +78,7 @@ int main(int argc, char *argv[])
     // handle client connections
     socklen_t clilen = sizeof(cli_addr);
     int clientfd, pid;
-    char buffer[2048], key[2048], ciphertext[2048];
+    char buffer[BUFFER_SIZE], key[BUFFER_SIZE], ciphertext[BUFFER_SIZE];
     char *encrypted_text;
     int n, i;
 
@@ -101,8 +102,8 @@ int main(int argc, char *argv[])
             // child process
 
             // verify client identity
-            memset(buffer, 0, 2048);
-            n = read(clientfd, buffer, 2047);
+            memset(buffer, 0, BUFFER_SIZE);
+            n = read(clientfd, buffer, BUFFER_SIZE - 1);
             if (n < 0)
             {
                 error("Error reading from socket");
@@ -115,16 +116,16 @@ int main(int argc, char *argv[])
             }
 
             // receive plaintext and key
-            memset(buffer, 0, 2048);
-            n = read(clientfd, buffer, 2047);
+            memset(buffer, 0, BUFFER_SIZE);
+            n = read(clientfd, buffer, BUFFER_SIZE - 1);
             if (n < 0)
             {
                 error("Error reading from socket");
             }
             strcpy(ciphertext, buffer);
 
-            memset(key, 0, 2048);
-            n = read(clientfd, key, 2047);
+            memset(key, 0, BUFFER_SIZE);
+            n = read(clientfd, key, BUFFER_SIZE - 1);
             if (n < 0)
             {
                 error("Error reading from socket");

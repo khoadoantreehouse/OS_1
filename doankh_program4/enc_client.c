@@ -8,7 +8,7 @@
 #include <sys/types.h>
 #include <fcntl.h>
 
-#define BUFFER_SIZE 2048
+#define BUFFER_SIZE 128000
 
 // Check if the file contains only valid characters
 int is_valid_file(char *filename)
