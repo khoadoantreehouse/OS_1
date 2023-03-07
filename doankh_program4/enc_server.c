@@ -121,13 +121,20 @@ int main(int argc, char *argv[])
 
             // verify client identity
             memset(buffer, 0, BUFFER_SIZE);
-            n = recv(clientfd, buffer, BUFFER_SIZE - 1, 0);
-            if (n < 0)
+            int size = 0;
+            while (n = recv(clientfd, buffer, BUFFER_SIZE - 1, 0) > 0)
             {
-                error("Error reading from socket");
-                close(clientfd);
-                exit(1);
+                if (n < 0)
+                {
+                    error("Error reading from socket");
+                    close(clientfd);
+                    exit(1);
+                }
+                size += n;
             }
+
+            printf("%s\n", buffer);
+
             char *brk = strdup(buffer);
             Cipher cipher;
             cipher.name = strtok(brk, "\n");
