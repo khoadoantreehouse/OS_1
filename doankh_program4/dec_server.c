@@ -132,11 +132,11 @@ int main(int argc, char *argv[])
             }
             char *brk = buffer;
             Cipher cipher;
-            cipher.name = strtok(brk, "\t");
-            cipher.plaintext_size = atoi(strtok(NULL, "\t"));
-            cipher.key_size = atoi(strtok(NULL, "\t"));
-            cipher.plaintext = strtok(NULL, "\t");
-            cipher.key = strtok(NULL, "\t");
+            cipher.name = strtok(brk, "\n");
+            cipher.plaintext_size = atoi(strtok(NULL, "\n"));
+            cipher.key_size = atoi(strtok(NULL, "\n"));
+            cipher.plaintext = strtok(NULL, "\n");
+            cipher.key = strtok(NULL, "\n");
 
             if (strstr(cipher.name, "dec_client") == NULL)
             {
@@ -152,7 +152,10 @@ int main(int argc, char *argv[])
                 key[i] = toupper(cipher.key[i]);
                 ciphertext[i] = my_decrypt(ciphertext[i], key[i]);
             }
-            ciphertext[cipher.plaintext_size] = '\0';
+            if (cipher.plaintext_size > strlen(cipher.plaintext))
+            {
+                ciphertext[cipher.plaintext_size - 1] = '\n';
+            }
 
             // // send ciphertext back to client
             int encrypted_text_size = strlen(ciphertext);

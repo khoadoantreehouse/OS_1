@@ -23,7 +23,6 @@ int is_valid_file(const char *filename)
         if (c != ' ' && (c < 'A' || c > 'Z') && c != '\n')
         {
             valid = 0;
-            printf("%c", c);
             break;
         }
     }
@@ -99,7 +98,7 @@ int main(int argc, char *argv[])
     }
 
     // Send newline character to server
-    char newline[2] = "\t";
+    char newline[2] = "\n";
     // Send program name to server
     char buffer[BUFFER_SIZE];
     memset(buffer, 0, BUFFER_SIZE);

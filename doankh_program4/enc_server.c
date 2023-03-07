@@ -128,15 +128,13 @@ int main(int argc, char *argv[])
                 close(clientfd);
                 exit(1);
             }
-
-            printf("%s\n", buffer);
-            char *brk = buffer;
+            char *brk = strdup(buffer);
             Cipher cipher;
-            cipher.name = strtok(brk, "\t");
-            cipher.plaintext_size = atoi(strtok(NULL, "\t"));
-            cipher.key_size = atoi(strtok(NULL, "\t"));
-            cipher.plaintext = strtok(NULL, "\t");
-            cipher.key = strtok(NULL, "\t");
+            cipher.name = strtok(brk, "\n");
+            cipher.plaintext_size = atoi(strtok(NULL, "\n"));
+            cipher.key_size = atoi(strtok(NULL, "\n"));
+            cipher.plaintext = strtok(NULL, "\n");
+            cipher.key = strtok(NULL, "\n");
 
             if (strstr(cipher.name, "enc_client") == NULL)
             {
@@ -153,13 +151,15 @@ int main(int argc, char *argv[])
                 ciphertext[i] = my_encrypt(ciphertext[i], key[i]);
             }
 
-            ciphertext[cipher.plaintext_size] = '\0';
+            if (cipher.plaintext_size > strlen(cipher.plaintext))
+            {
+                ciphertext[cipher.plaintext_size - 1] = '\n';
+            }
             // // send ciphertext back to client
             int encrypted_text_size = strlen(ciphertext);
             char encrypted_text[encrypted_text_size + 1];
             strcpy(encrypted_text, ciphertext);
             n = send(clientfd, encrypted_text, encrypted_text_size, 0);
-
             if (n < 0)
             {
                 error("Error sending encrypted text");

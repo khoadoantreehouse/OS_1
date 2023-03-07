@@ -6,7 +6,7 @@
 #include <netdb.h>
 #include <unistd.h>
 
-#define BUFFER_SIZE 150000
+#define BUFFER_SIZE 1024
 
 int is_valid_file(const char *filename)
 {
@@ -108,6 +108,8 @@ int main(int argc, char *argv[])
     memset(buffer, 0, BUFFER_SIZE);
     sprintf(buffer, "%s ", argv[0]);
     send(sockfd, buffer, strlen(buffer), 0);
+    send(sockfd, newline, strlen(newline), 0);
+
     memset(buffer, 0, BUFFER_SIZE);
 
     // Send plaintext and key size to server
@@ -115,16 +117,18 @@ int main(int argc, char *argv[])
     fseek(plaintext_file2, 0, SEEK_END);
     size_t plaintext_size2 = ftell(plaintext_file2);
     fclose(plaintext_file2);
-    sprintf(buffer, "%d ", plaintext_size2);
+    sprintf(buffer, "%lu ", plaintext_size2);
     send(sockfd, buffer, strlen(buffer), 0);
+    send(sockfd, newline, strlen(newline), 0);
 
     memset(buffer, 0, BUFFER_SIZE);
     FILE *key_file2 = fopen(key, "r");
     fseek(key_file2, 0, SEEK_END);
     size_t key_size2 = ftell(key_file2);
     fclose(key_file2);
-    sprintf(buffer, "%d ", key_size2);
+    sprintf(buffer, "%lu ", key_size2);
     send(sockfd, buffer, strlen(buffer), 0);
+    send(sockfd, newline, strlen(newline), 0);
 
     memset(buffer, 0, BUFFER_SIZE);
     // Send plaintext and key to server
@@ -135,6 +139,7 @@ int main(int argc, char *argv[])
         memset(buffer, 0, BUFFER_SIZE);
     }
     fclose(plaintext_file3);
+    send(sockfd, newline, strlen(newline), 0);
 
     memset(buffer, 0, BUFFER_SIZE);
 
@@ -145,6 +150,7 @@ int main(int argc, char *argv[])
         memset(buffer, 0, BUFFER_SIZE);
     }
     fclose(key_file3);
+
     memset(buffer, 0, BUFFER_SIZE);
 
     send(sockfd, newline, strlen(newline), 0);
