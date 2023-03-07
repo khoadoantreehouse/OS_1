@@ -29,11 +29,7 @@ char my_decrypt(char ciphertext, char key)
 {
     char message;
     int i;
-    if (ciphertext == '\n' || ciphertext == '\r' || ciphertext == '\t')
-    {
-        message = ciphertext;
-    } else
-    {
+
     int cipherVal = ciphertext - 'A';
     int keyVal = key - 'A';
     if (cipherVal == -33)
@@ -47,7 +43,7 @@ char my_decrypt(char ciphertext, char key)
     message = messageVal + 'A';
     if (messageVal == 26)
         message = ' ';
-    }
+
     return message;
 }
 

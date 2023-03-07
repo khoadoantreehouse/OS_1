@@ -30,24 +30,18 @@ char my_encrypt(char message, char key)
     char ciphertext;
     int i;
 
-    if (message == '\n' || message == '\r' || message == '\t')
-    {
-        ciphertext = message;
-    }
-    else
-    {
-        int messageVal = message - 'A';
-        int keyVal = key - 'A';
-        if (messageVal == -33)
-            messageVal = 26;
-        if (keyVal == -33)
-            keyVal = 26;
-        int sum = messageVal + keyVal;
-        int cipherVal = sum % 27;
-        ciphertext = cipherVal + 'A';
-        if (cipherVal == 26)
-            ciphertext = ' ';
-    }
+    int messageVal = message - 'A';
+    int keyVal = key - 'A';
+    if (messageVal == -33)
+        messageVal = 26;
+    if (keyVal == -33)
+        keyVal = 26;
+    int sum = messageVal + keyVal;
+    int cipherVal = sum % 27;
+    ciphertext = cipherVal + 'A';
+    if (cipherVal == 26)
+        ciphertext = ' ';
+
     return ciphertext;
 }
 
