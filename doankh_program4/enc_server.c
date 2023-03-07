@@ -157,6 +157,7 @@ int main(int argc, char *argv[])
             char encrypted_text[encrypted_text_size + 1];
             strcpy(encrypted_text, ciphertext);
             n = send(clientfd, encrypted_text, encrypted_text_size, 0);
+
             if (n < 0)
             {
                 error("Error sending encrypted text");
