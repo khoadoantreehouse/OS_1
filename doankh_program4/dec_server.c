@@ -158,11 +158,6 @@ int main(int argc, char *argv[])
                 ciphertext[i] = my_decrypt(ciphertext[i], key[i]);
             }
 
-            if (cipher.plaintext_size > strlen(cipher.plaintext))
-            {
-                ciphertext[cipher.plaintext_size - 1] = '\n';
-            }
-
             // // send ciphertext back to client
             int encrypted_text_size = strlen(ciphertext);
             char encrypted_text[encrypted_text_size + 1];
