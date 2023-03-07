@@ -29,21 +29,26 @@ char my_decrypt(char ciphertext, char key)
 {
     char message;
     int i;
-
-    int cipherVal = ciphertext - 'A';
-    int keyVal = key - 'A';
-    if (cipherVal == -33)
-        cipherVal = 26;
-    if (keyVal == -33)
-        keyVal = 26;
-    int diff = cipherVal - keyVal;
-    if (diff < 0)
-        diff += 27;
-    int messageVal = diff % 27;
-    message = messageVal + 'A';
-    if (messageVal == 26)
-        message = ' ';
-
+    if (ciphertext == '\n' || ciphertext == '\r' || ciphertext == '\t')
+    {
+        message = ciphertext;
+    }
+    else
+    {
+        int cipherVal = ciphertext - 'A';
+        int keyVal = key - 'A';
+        if (cipherVal == -33)
+            cipherVal = 26;
+        if (keyVal == -33)
+            keyVal = 26;
+        int diff = cipherVal - keyVal;
+        if (diff < 0)
+            diff += 27;
+        int messageVal = diff % 27;
+        message = messageVal + 'A';
+        if (messageVal == 26)
+            message = ' ';
+    }
     return message;
 }
 
@@ -152,7 +157,11 @@ int main(int argc, char *argv[])
                 key[i] = toupper(cipher.key[i]);
                 ciphertext[i] = my_decrypt(ciphertext[i], key[i]);
             }
-            ciphertext[cipher.plaintext_size] = '\0';
+
+            if (cipher.plaintext_size > strlen(cipher.plaintext))
+            {
+                ciphertext[cipher.plaintext_size - 1] = '\n';
+            }
 
             // // send ciphertext back to client
             int encrypted_text_size = strlen(ciphertext);

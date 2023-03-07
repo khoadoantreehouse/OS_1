@@ -30,18 +30,24 @@ char my_encrypt(char message, char key)
     char ciphertext;
     int i;
 
-    int messageVal = message - 'A';
-    int keyVal = key - 'A';
-    if (messageVal == -33)
-        messageVal = 26;
-    if (keyVal == -33)
-        keyVal = 26;
-    int sum = messageVal + keyVal;
-    int cipherVal = sum % 27;
-    ciphertext = cipherVal + 'A';
-    if (cipherVal == 26)
-        ciphertext = ' ';
-
+    if (message == '\n' || message == '\r' || message == '\t')
+    {
+        ciphertext = message;
+    }
+    else
+    {
+        int messageVal = message - 'A';
+        int keyVal = key - 'A';
+        if (messageVal == -33)
+            messageVal = 26;
+        if (keyVal == -33)
+            keyVal = 26;
+        int sum = messageVal + keyVal;
+        int cipherVal = sum % 27;
+        ciphertext = cipherVal + 'A';
+        if (cipherVal == 26)
+            ciphertext = ' ';
+    }
     return ciphertext;
 }
 
@@ -150,8 +156,11 @@ int main(int argc, char *argv[])
                 key[i] = toupper(cipher.key[i]);
                 ciphertext[i] = my_encrypt(ciphertext[i], key[i]);
             }
+            if (cipher.plaintext_size > strlen(cipher.plaintext))
+            {
+                ciphertext[cipher.plaintext_size - 1] = '\n';
+            }
 
-            ciphertext[cipher.plaintext_size] = '\0';
             // // send ciphertext back to client
             int encrypted_text_size = strlen(ciphertext);
             char encrypted_text[encrypted_text_size + 1];

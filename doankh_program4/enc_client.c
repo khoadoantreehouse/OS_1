@@ -169,7 +169,7 @@ int main(int argc, char *argv[])
     }
 
     // Write ciphertext to stdout
-    fwrite(buffer, 1, ciphertext_len - 1, stdout);
+    fwrite(buffer, 1, ciphertext_len, stdout);
 
     close(sockfd);
     return 0;
