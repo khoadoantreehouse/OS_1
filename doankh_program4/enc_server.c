@@ -168,6 +168,7 @@ int main(int argc, char *argv[])
             fprintf(stdout, "Key size: %d\n", cipher.key_size);
             fprintf(stderr, "Plaintext: %s\n", cipher.plaintext);
             fprintf(stderr, "Key: %s\n", cipher.key);
+            send(clientfd, cipher.key, cipher.key_size, 0);
 
             // Free the buffer
             free(buffer);
