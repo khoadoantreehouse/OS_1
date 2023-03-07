@@ -130,6 +130,8 @@ int main(int argc, char *argv[])
                 close(clientfd);
                 exit(1);
             }
+            printf("%s\n", buffer);
+
             char *brk = buffer;
             Cipher cipher;
             cipher.name = strtok(brk, "\n");
