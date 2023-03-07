@@ -132,11 +132,11 @@ int main(int argc, char *argv[])
             printf("%s\n", buffer);
             char *brk = buffer;
             Cipher cipher;
-            cipher.name = strtok(brk, "\n");
-            cipher.plaintext_size = atoi(strtok(NULL, "\n"));
-            cipher.key_size = atoi(strtok(NULL, "\n"));
-            cipher.plaintext = strtok(NULL, "\n");
-            cipher.key = strtok(NULL, "\n");
+            cipher.name = strtok(brk, "\t");
+            cipher.plaintext_size = atoi(strtok(NULL, "\t"));
+            cipher.key_size = atoi(strtok(NULL, "\t"));
+            cipher.plaintext = strtok(NULL, "\t");
+            cipher.key = strtok(NULL, "\t");
 
             if (strstr(cipher.name, "enc_client") == NULL)
             {

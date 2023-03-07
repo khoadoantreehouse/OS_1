@@ -102,7 +102,7 @@ int main(int argc, char *argv[])
     }
 
     // Send newline character to server
-    char newline[2] = "\n";
+    char newline[2] = "\t";
     // Send program name to server
     char buffer[BUFFER_SIZE];
     memset(buffer, 0, BUFFER_SIZE);
