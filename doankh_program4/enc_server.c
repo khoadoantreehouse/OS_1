@@ -128,7 +128,7 @@ int main(int argc, char *argv[])
                 close(clientfd);
                 exit(1);
             }
-            char *brk = strdup(buffer);
+            char *brk = buffer;
             Cipher cipher;
             cipher.name = strtok(brk, "\n");
             cipher.plaintext_size = atoi(strtok(NULL, "\n"));
