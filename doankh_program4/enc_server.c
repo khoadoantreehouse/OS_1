@@ -120,19 +120,40 @@ int main(int argc, char *argv[])
             // child process
 
             // verify client identity
-            memset(buffer, 0, BUFFER_SIZE);
-            int size = 0;
-            while ((n = recv(clientfd, buffer, sizeof(buffer), 0) > 0))
+            // Receive data in a loop until the entire message has been received
+            char *buffer = NULL;
+            int buffer_size = 0;
+            int total_received = 0;
+            while (1)
             {
+                // Resize the buffer to accommodate more data
+                buffer_size += BUFFER_SIZE;
+                buffer = realloc(buffer, buffer_size);
+                if (buffer == NULL)
+                {
+                    error("Error allocating memory");
+                    close(clientfd);
+                    exit(1);
+                }
+
+                // Receive data into the buffer
+                n = recv(clientfd, buffer + total_received, BUFFER_SIZE, 0);
                 if (n < 0)
+                {
+                    error("Error reading from socket");
+                    close(clientfd);
+                    exit(1);
+                }
+                total_received += n;
+
+                // Check if we have received the entire message
+                if (buffer[total_received - 1] == '\n')
                 {
                     break;
                 }
-                size += n;
             }
 
-            printf("%s\n", buffer);
-
+            // Break the buffer into cipher using strtok
             char *brk = strdup(buffer);
             Cipher cipher;
             cipher.name = strtok(brk, "\n");
@@ -140,6 +161,16 @@ int main(int argc, char *argv[])
             cipher.key_size = atoi(strtok(NULL, "\n"));
             cipher.plaintext = strtok(NULL, "\n");
             cipher.key = strtok(NULL, "\n");
+
+            // Print the cipher data
+            printf("Name: %s\n", cipher.name);
+            printf("Plaintext size: %d\n", cipher.plaintext_size);
+            printf("Key size: %d\n", cipher.key_size);
+            printf("Plaintext: %s\n", cipher.plaintext);
+            printf("Key: %s\n", cipher.key);
+
+            // Free the buffer
+            free(buffer);
 
             if (strstr(cipher.name, "enc_client") == NULL)
             {
