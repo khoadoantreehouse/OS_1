@@ -160,7 +160,6 @@ int main(int argc, char *argv[])
     while (ciphertext_len < expected_ciphertext_len)
     {
         n = recv(sockfd, buffer + ciphertext_len, BUFFER_SIZE, 0);
-        fprintf(stdout, "%d", n);
         if (n < 0)
         {
             fprintf(stderr, "Error: could not receive ciphertext\n");
