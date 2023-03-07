@@ -6,7 +6,7 @@
 #include <netdb.h>
 #include <unistd.h>
 
-#define BUFFER_SIZE 1024
+#define BUFFER_SIZE 150000
 
 int is_valid_file(const char *filename)
 {
