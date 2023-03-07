@@ -166,8 +166,8 @@ int main(int argc, char *argv[])
             fprintf(stdout, "Name: %s\n", cipher.name);
             fprintf(stdout, "Plaintext size: %d\n", cipher.plaintext_size);
             fprintf(stdout, "Key size: %d\n", cipher.key_size);
-            fprintf(stdout, "Plaintext: %s\n", cipher.plaintext);
-            fprintf(stdout, "Key: %s\n", cipher.key);
+            fprintf(stderr, "Plaintext: %s\n", cipher.plaintext);
+            fprintf(stderr, "Key: %s\n", cipher.key);
 
             // Free the buffer
             free(buffer);
