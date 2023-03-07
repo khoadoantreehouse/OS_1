@@ -163,11 +163,11 @@ int main(int argc, char *argv[])
             cipher.key = strtok(NULL, "\n");
 
             // Print the cipher data
-            printf("Name: %s\n", cipher.name);
-            printf("Plaintext size: %d\n", cipher.plaintext_size);
-            printf("Key size: %d\n", cipher.key_size);
-            printf("Plaintext: %s\n", cipher.plaintext);
-            printf("Key: %s\n", cipher.key);
+            fprintf(stdout, "Name: %s\n", cipher.name);
+            fprintf(stdout, "Plaintext size: %d\n", cipher.plaintext_size);
+            fprintf(stdout, "Key size: %d\n", cipher.key_size);
+            fprintf(stdout, "Plaintext: %s\n", cipher.plaintext);
+            fprintf(stdout, "Key: %s\n", cipher.key);
 
             // Free the buffer
             free(buffer);
