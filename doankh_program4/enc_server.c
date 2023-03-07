@@ -121,13 +121,16 @@ int main(int argc, char *argv[])
 
             // verify client identity
             memset(buffer, 0, BUFFER_SIZE);
-            n = recv(clientfd, buffer, sizeof(buffer), 0);
-            if (n < 0)
+            int size = 0;
+            while ((n = recv(clientfd, buffer, sizeof(buffer), 0) > 0))
             {
-                error("Error reading from socket");
-                close(clientfd);
-                exit(1);
+                if (n < 0)
+                {
+                    break;
+                }
+                size += n;
             }
+
             printf("%s\n", buffer);
 
             char *brk = strdup(buffer);
