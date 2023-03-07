@@ -102,14 +102,13 @@ int main(int argc, char *argv[])
     }
 
     // Send newline character to server
-    char newline[2] = "\t";
+    char newline[2] = "\n";
     // Send program name to server
     char buffer[BUFFER_SIZE];
     memset(buffer, 0, BUFFER_SIZE);
     sprintf(buffer, "%s ", argv[0]);
     send(sockfd, buffer, strlen(buffer), 0);
     memset(buffer, 0, BUFFER_SIZE);
-    send(sockfd, newline, strlen(newline), 0);
 
     // Send plaintext and key size to server
     FILE *plaintext_file2 = fopen(plaintext, "r");
@@ -118,7 +117,6 @@ int main(int argc, char *argv[])
     fclose(plaintext_file2);
     sprintf(buffer, "%lu ", plaintext_size2);
     send(sockfd, buffer, strlen(buffer), 0);
-    send(sockfd, newline, strlen(newline), 0);
 
     memset(buffer, 0, BUFFER_SIZE);
     FILE *key_file2 = fopen(key, "r");
@@ -127,7 +125,6 @@ int main(int argc, char *argv[])
     fclose(key_file2);
     sprintf(buffer, "%lu ", key_size2);
     send(sockfd, buffer, strlen(buffer), 0);
-    send(sockfd, newline, strlen(newline), 0);
 
     memset(buffer, 0, BUFFER_SIZE);
     // Send plaintext and key to server
@@ -138,7 +135,6 @@ int main(int argc, char *argv[])
         memset(buffer, 0, BUFFER_SIZE);
     }
     fclose(plaintext_file3);
-    send(sockfd, newline, strlen(newline), 0);
 
     memset(buffer, 0, BUFFER_SIZE);
 
