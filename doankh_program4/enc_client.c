@@ -115,7 +115,7 @@ int main(int argc, char *argv[])
     fseek(plaintext_file2, 0, SEEK_END);
     size_t plaintext_size2 = ftell(plaintext_file2);
     fclose(plaintext_file2);
-    sprintf(buffer, "%lu ", plaintext_size2);
+    sprintf(buffer, "%d ", plaintext_size2);
     send(sockfd, buffer, strlen(buffer), 0);
 
     memset(buffer, 0, BUFFER_SIZE);
@@ -123,7 +123,7 @@ int main(int argc, char *argv[])
     fseek(key_file2, 0, SEEK_END);
     size_t key_size2 = ftell(key_file2);
     fclose(key_file2);
-    sprintf(buffer, "%lu ", key_size2);
+    sprintf(buffer, "%d ", key_size2);
     send(sockfd, buffer, strlen(buffer), 0);
 
     memset(buffer, 0, BUFFER_SIZE);
