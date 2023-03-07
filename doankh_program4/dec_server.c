@@ -43,8 +43,8 @@ int main(int argc, char *argv[])
     {
         error("Usage: dec_server <listening_port>");
     }
-
-    int port = atoi(argv[1]);
+    char *ptr;
+    long port = strtol(argv[1], &ptr, 10);
     if (port <= 0)
     {
         error("Invalid listening port");

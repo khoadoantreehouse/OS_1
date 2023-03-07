@@ -46,7 +46,8 @@ int main(int argc, char *argv[])
     }
     char *plaintext = argv[1];
     char *key = argv[2];
-    int port = atoi(argv[3]);
+    char *ptr;
+    long port = strtol(argv[3], &ptr, 10);
 
     // Check plaintext and key files for bad characters
     if (!is_valid_file(plaintext))
