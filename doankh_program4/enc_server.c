@@ -128,6 +128,8 @@ int main(int argc, char *argv[])
                 close(clientfd);
                 exit(1);
             }
+
+            printf("%s\n", buffer);
             char *brk = buffer;
             Cipher cipher;
             cipher.name = strtok(brk, "\n");
@@ -136,7 +138,6 @@ int main(int argc, char *argv[])
             cipher.plaintext = strtok(NULL, "\n");
             cipher.key = strtok(NULL, "\n");
 
-            fprintf(stdout, "%s\n", cipher.name);
             if (strstr(cipher.name, "enc_client") == NULL)
             {
                 error("Not authorized client");
