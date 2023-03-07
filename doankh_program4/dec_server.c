@@ -152,6 +152,7 @@ int main(int argc, char *argv[])
                 key[i] = toupper(cipher.key[i]);
                 ciphertext[i] = my_decrypt(ciphertext[i], key[i]);
             }
+            ciphertext[cipher.plaintext_size] = '\0';
 
             // // send ciphertext back to client
             int encrypted_text_size = strlen(ciphertext);
