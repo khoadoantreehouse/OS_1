@@ -15,27 +15,25 @@ void error(const char *msg)
     exit(1);
 }
 
-char *decrypt(char *ciphertext, char *key)
+char my_decrypt(char ciphertext, char key)
 {
-    char *message = (char *)malloc((strlen(ciphertext) + 1) * sizeof(char));
+    char message;
     int i;
-    for (i = 0; i < strlen(ciphertext); i++)
-    {
-        int cipherVal = ciphertext[i] - 'A';
-        int keyVal = key[i] - 'A';
-        if (cipherVal == -33)
-            cipherVal = 26;
-        if (keyVal == -33)
-            keyVal = 26;
-        int diff = cipherVal - keyVal;
-        if (diff < 0)
-            diff += 27;
-        int messageVal = diff % 27;
-        message[i] = messageVal + 'A';
-        if (messageVal == 26)
-            message[i] = ' ';
-    }
-    message[i] = '\0';
+
+    int cipherVal = ciphertext - 'A';
+    int keyVal = key - 'A';
+    if (cipherVal == -33)
+        cipherVal = 26;
+    if (keyVal == -33)
+        keyVal = 26;
+    int diff = cipherVal - keyVal;
+    if (diff < 0)
+        diff += 27;
+    int messageVal = diff % 27;
+    message = messageVal + 'A';
+    if (messageVal == 26)
+        message = ' ';
+
     return message;
 }
 
@@ -80,8 +78,7 @@ int main(int argc, char *argv[])
     // handle client connections
     socklen_t clilen = sizeof(cli_addr);
     int clientfd, pid;
-    char buffer[2048];
-    char *key, ciphertext, decrypted;
+    char buffer[2048], key[2048], ciphertext[2048];
     int n, i;
 
     while (1)
@@ -134,10 +131,13 @@ int main(int argc, char *argv[])
             }
 
             // perform decryption
-            decrypted = decrypt(ciphertext, key);
+            for (i = 0; i < strlen(ciphertext); i++)
+            {
+                ciphertext[i] = my_decrypt(ciphertext[i], key[i]);
+            }
 
             // send ciphertext back to client
-            n = write(clientfd, decrypted, strlen(decrypted));
+            n = write(clientfd, ciphertext, strlen(ciphertext));
             if (n < 0)
             {
                 error("Error writing to socket");
