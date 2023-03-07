@@ -136,6 +136,7 @@ int main(int argc, char *argv[])
             cipher.plaintext = strtok(NULL, "\n");
             cipher.key = strtok(NULL, "\n");
 
+            fprintf(stdout, "%s\n", cipher.name);
             if (strstr(cipher.name, "enc_client") == NULL)
             {
                 error("Not authorized client");
@@ -150,7 +151,7 @@ int main(int argc, char *argv[])
                 key[i] = toupper(cipher.key[i]);
                 ciphertext[i] = my_encrypt(ciphertext[i], key[i]);
             }
-            fprintf(stdout, "%d", cipher.plaintext_size);
+
             ciphertext[cipher.plaintext_size] = '\0';
             // // send ciphertext back to client
             int encrypted_text_size = strlen(ciphertext);
