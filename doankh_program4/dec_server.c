@@ -7,11 +7,21 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 
-#define BUFFER_SIZE 128000
+#define MAX_CLIENTS 5
+#define BUFFER_SIZE 150000
+
+typedef struct
+{
+    char *name;
+    int plaintext_size;
+    int key_size;
+    char *plaintext;
+    char *key;
+} Cipher;
 
 void error(const char *msg)
 {
-    perror(msg);
+    fprintf(stderr, "%s\n", msg);
     exit(1);
 }
 
@@ -41,13 +51,16 @@ int main(int argc, char *argv[])
 {
     if (argc != 2)
     {
-        error("Usage: dec_server <listening_port>");
+        error("Usage: enc_server <listening_port>");
+        exit(1);
     }
+
     char *ptr;
     long port = strtol(argv[1], &ptr, 10);
     if (port <= 0)
     {
         error("Invalid listening port");
+        exit(1);
     }
 
     // create socket
@@ -55,6 +68,8 @@ int main(int argc, char *argv[])
     if (sockfd < 0)
     {
         error("Error opening socket");
+        close(sockfd);
+        exit(1);
     }
 
     // set SO_REUSEADDR option
@@ -70,6 +85,8 @@ int main(int argc, char *argv[])
     if (bind(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
     {
         error("Error binding socket to port");
+        close(sockfd);
+        exit(1);
     }
 
     // listen for connections
@@ -78,7 +95,7 @@ int main(int argc, char *argv[])
     // handle client connections
     socklen_t clilen = sizeof(cli_addr);
     int clientfd, pid;
-    char buffer[2048], key[2048], ciphertext[2048];
+    char buffer[BUFFER_SIZE], key[BUFFER_SIZE], ciphertext[BUFFER_SIZE];
     int n, i;
 
     while (1)
@@ -88,6 +105,8 @@ int main(int argc, char *argv[])
         if (clientfd < 0)
         {
             error("Error accepting connection");
+            close(sockfd);
+            exit(1);
         }
 
         // fork child process to handle client
@@ -95,53 +114,56 @@ int main(int argc, char *argv[])
         if (pid < 0)
         {
             error("Error forking child process");
+            close(sockfd);
+            exit(1);
         }
         else if (pid == 0)
         {
             // child process
 
             // verify client identity
-            memset(buffer, 0, 2048);
-            n = read(clientfd, buffer, 2047);
-
+            memset(buffer, 0, BUFFER_SIZE);
+            n = recv(clientfd, buffer, BUFFER_SIZE - 1, 0);
             if (n < 0)
             {
                 error("Error reading from socket");
+                close(clientfd);
+                exit(1);
+            }
+            char *brk = strdup(buffer);
+            Cipher cipher;
+            cipher.name = strtok(brk, "\n");
+            cipher.plaintext_size = atoi(strtok(NULL, "\n"));
+            cipher.key_size = atoi(strtok(NULL, "\n"));
+            cipher.plaintext = strtok(NULL, "\n");
+            cipher.key = strtok(NULL, "\n");
+
+            if (strstr(cipher.name, "dec_client") == NULL)
+            {
+                error("Not authorized client");
+                close(clientfd);
+                exit(1);
             }
 
-            if (strcmp(buffer, "dec_client") != 0)
+            // perform encryption
+            for (i = 0; i < cipher.plaintext_size; i++)
             {
-                error("Error: not a valid client");
-            }
-
-            // receive plaintext and key
-            memset(buffer, 0, 2048);
-            n = read(clientfd, buffer, 2047);
-            if (n < 0)
-            {
-                error("Error reading from socket");
-            }
-            strcpy(ciphertext, buffer);
-
-            memset(key, 0, 2048);
-            n = read(clientfd, key, 2047);
-            if (n < 0)
-            {
-                error("Error reading from socket");
-            }
-
-            // perform decryption
-            for (i = 0; i < strlen(ciphertext); i++)
-            {
+                ciphertext[i] = toupper(cipher.plaintext[i]);
+                key[i] = toupper(cipher.key[i]);
                 ciphertext[i] = my_decrypt(ciphertext[i], key[i]);
             }
+            ciphertext[cipher.plaintext_size] = '\0';
 
-            // send ciphertext back to client
-            n = write(clientfd, ciphertext, strlen(ciphertext));
+            // // send ciphertext back to client
+            int encrypted_text_size = strlen(ciphertext);
+            char encrypted_text[encrypted_text_size + 1];
+            strcpy(encrypted_text, ciphertext);
+            n = send(clientfd, encrypted_text, encrypted_text_size, 0);
             if (n < 0)
             {
-                error("Error writing to socket");
-                // Close the socket for this client
+                error("Error sending encrypted text");
+                close(clientfd);
+                exit(1);
             }
 
             // close the client socket and exit child process
@@ -159,4 +181,4 @@ int main(int argc, char *argv[])
     // close the server socket
     close(sockfd);
     return 0;
-} // added this line to fix the expected '}' error
+}

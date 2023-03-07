@@ -1,39 +1,39 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
-#include <netdb.h>
-#include <netinet/in.h>
 #include <sys/socket.h>
-#include <sys/types.h>
-#include <fcntl.h>
+#include <netinet/in.h>
+#include <netdb.h>
+#include <unistd.h>
 
-#define BUFFER_SIZE 128000
+#define BUFFER_SIZE 150000
 
-// Check if the file contains only valid characters
-int is_valid_file(char *filename)
+int is_valid_file(const char *filename)
 {
     FILE *file = fopen(filename, "r");
     if (!file)
     {
         return 0;
     }
-    int ch;
-    int is_end_of_file = 0;
-    while (!is_end_of_file && (ch = fgetc(file)) != EOF)
+
+    int valid = 1;
+    int c;
+    while ((c = fgetc(file)) != EOF)
     {
-        if (ch != ' ' && ch != '\n' && (ch < 'A' || ch > 'Z'))
+        if (c == '\n')
         {
-            fclose(file);
-            return 0;
+            continue;
         }
-        if (ch == '\n')
+        if (c != ' ' && (c < 'A' || c > 'Z'))
         {
-            is_end_of_file = 1;
+            valid = 0;
+            break;
         }
     }
+
     fclose(file);
-    return 1;
+
+    return valid;
 }
 
 int main(int argc, char *argv[])
@@ -77,6 +77,7 @@ int main(int argc, char *argv[])
     }
 
     // Connect to server
+    int n;
     int sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd < 0)
     {
@@ -96,65 +97,79 @@ int main(int argc, char *argv[])
     serv_addr.sin_port = htons(port);
     if (connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
     {
-        fprintf(stderr, "Error: could not connect to server on port %d\n", port);
+        fprintf(stderr, "Error: could not connect to server on port %ld\n", port);
         exit(2);
     }
 
-    int n = 0;
+    // Send newline character to server
+    char newline[2] = "\n";
     // Send program name to server
     char buffer[BUFFER_SIZE];
     memset(buffer, 0, BUFFER_SIZE);
-    sprintf(buffer, "%s", argv[0]);
-    write(sockfd, buffer, strlen(buffer));
+    sprintf(buffer, "%s ", argv[0]);
+    send(sockfd, buffer, strlen(buffer), 0);
     memset(buffer, 0, BUFFER_SIZE);
+    send(sockfd, newline, strlen(newline), 0);
 
-    // Send plaintext and key to server
+    // Send plaintext and key size to server
     FILE *plaintext_file2 = fopen(plaintext, "r");
-    while ((n = fread(buffer, 1, BUFFER_SIZE, plaintext_file2)) > 0)
-    {
-        write(sockfd, buffer, n);
-        memset(buffer, 0, BUFFER_SIZE);
-    }
+    fseek(plaintext_file2, 0, SEEK_END);
+    size_t plaintext_size2 = ftell(plaintext_file2);
     fclose(plaintext_file2);
-    memset(buffer, 0, BUFFER_SIZE);
-    sprintf(buffer, "");
-    write(sockfd, buffer, strlen(buffer));
+    sprintf(buffer, "%lu ", plaintext_size2);
+    send(sockfd, buffer, strlen(buffer), 0);
+    send(sockfd, newline, strlen(newline), 0);
+
     memset(buffer, 0, BUFFER_SIZE);
     FILE *key_file2 = fopen(key, "r");
-    while ((n = fread(buffer, 1, BUFFER_SIZE, key_file2)) > 0)
+    fseek(key_file2, 0, SEEK_END);
+    size_t key_size2 = ftell(key_file2);
+    fclose(key_file2);
+    sprintf(buffer, "%lu ", key_size2);
+    send(sockfd, buffer, strlen(buffer), 0);
+    send(sockfd, newline, strlen(newline), 0);
+
+    memset(buffer, 0, BUFFER_SIZE);
+    // Send plaintext and key to server
+    FILE *plaintext_file3 = fopen(plaintext, "r");
+    while ((n = fread(buffer, 1, BUFFER_SIZE, plaintext_file3)) > 0)
     {
-        write(sockfd, buffer, n);
+        send(sockfd, buffer, n, 0);
         memset(buffer, 0, BUFFER_SIZE);
     }
-    fclose(key_file2);
+    fclose(plaintext_file3);
+    send(sockfd, newline, strlen(newline), 0);
+
     memset(buffer, 0, BUFFER_SIZE);
-    sprintf(buffer, "\n");
-    write(sockfd, buffer, strlen(buffer));
+
+    FILE *key_file3 = fopen(key, "r");
+    while ((n = fread(buffer, 1, BUFFER_SIZE, key_file3)) > 0)
+    {
+        send(sockfd, buffer, n, 0);
+        memset(buffer, 0, BUFFER_SIZE);
+    }
+    fclose(key_file3);
     memset(buffer, 0, BUFFER_SIZE);
-    // Send newline character to server
-    write(sockfd, "\n", 1);
+
+    send(sockfd, newline, strlen(newline), 0);
 
     // Receive ciphertext from server
-    char ciphertext_buffer[BUFFER_SIZE];
-    memset(ciphertext_buffer, 0, BUFFER_SIZE);
+    memset(buffer, 0, BUFFER_SIZE);
     int ciphertext_len = 0;
-    while ((n = read(sockfd, ciphertext_buffer + ciphertext_len, BUFFER_SIZE - ciphertext_len)) > 0)
+    int expected_ciphertext_len = plaintext_size2;
+    while (ciphertext_len < expected_ciphertext_len)
     {
-        ciphertext_len += n;
-        if (ciphertext_len >= BUFFER_SIZE)
+        n = recv(sockfd, buffer + ciphertext_len, BUFFER_SIZE, 0);
+        if (n < 0)
         {
-            fprintf(stderr, "Error: ciphertext too long\n");
+            fprintf(stderr, "Error: could not receive ciphertext\n");
             exit(1);
         }
-    }
-    if (n < 0)
-    {
-        fprintf(stderr, "Error: could not receive ciphertext\n");
-        exit(1);
+        ciphertext_len += n;
     }
 
     // Write ciphertext to stdout
-    fwrite(ciphertext_buffer, 1, ciphertext_len, stdout);
+    fwrite(buffer, 1, ciphertext_len - 1, stdout);
 
     close(sockfd);
     return 0;
