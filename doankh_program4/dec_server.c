@@ -135,13 +135,13 @@ int main(int argc, char *argv[])
                 memset(buffer, 0, BUFFER_SIZE);
             }
 
-            char *brk = buffer;
+            char *brk = received_string;
             Cipher cipher;
-            cipher.name = strtok(brk, "\n");
-            cipher.plaintext_size = atoi(strtok(NULL, "\n"));
-            cipher.key_size = atoi(strtok(NULL, "\n"));
-            cipher.plaintext = strtok(NULL, "\n");
-            cipher.key = strtok(NULL, "\n");
+            cipher.name = strtok(brk, "\t");
+            cipher.plaintext_size = atoi(strtok(NULL, "\t"));
+            cipher.key_size = atoi(strtok(NULL, "\t"));
+            cipher.plaintext = strtok(NULL, "\t");
+            cipher.key = strtok(NULL, "]");
 
             if (strstr(cipher.name, "dec_client") == NULL)
             {
