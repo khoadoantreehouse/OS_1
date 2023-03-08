@@ -38,8 +38,6 @@ int is_valid_file(const char *filename)
 
 int main(int argc, char *argv[])
 {
-    printf("Client is running\n");
-
     // Check command-line arguments
     if (argc != 4)
     {
@@ -142,21 +140,15 @@ int main(int argc, char *argv[])
     strncat(concatenated_string + strlen(concatenated_string), "]", 1);
 
     // // Send the concatenated string 256 letters at a time to the server
-    // int num_chunks = strlen(concatenated_string) / 256 + 1; // Number of 256-letter chunks to send
-    // for (int i = 0; i < num_chunks; i++)
-    // {
-    //     char chunk[257];
-    //     memset(chunk, 0, sizeof(chunk));
-    //     strncpy(chunk, concatenated_string + i * 256, 256);
-    //     send(sockfd, chunk, strlen(chunk), 0);
-    // }
-    printf("Sending");
-    fflush(stdout);
+    int num_chunks = strlen(concatenated_string) / 256 + 1; // Number of 256-letter chunks to send
+    for (int i = 0; i < num_chunks; i++)
+    {
+        char chunk[257];
+        memset(chunk, 0, sizeof(chunk));
+        strncpy(chunk, concatenated_string + i * 256, 256);
+        send(sockfd, chunk, strlen(chunk), 0);
+    }
 
-    send(sockfd, "Hello, world!", strlen("Hello, world!"), 0);
-
-    printf("End");
-    fflush(stdout);
     // Receive ciphertext from server
     memset(buffer, 0, BUFFER_SIZE);
     int ciphertext_len = 0;

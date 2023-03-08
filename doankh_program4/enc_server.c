@@ -47,8 +47,6 @@ char my_encrypt(char message, char key)
 
 int main(int argc, char *argv[])
 {
-    printf("Server is running\n");
-
     if (argc != 2)
     {
         error("Usage: enc_server <listening_port>");
@@ -122,25 +120,25 @@ int main(int argc, char *argv[])
             // child process
             char received_string[BUFFER_SIZE];
             // Receive data from client until the character "]" is reached
-            // while ((n = recv(clientfd, buffer, BUFFER_SIZE, 0)) > 0)
-            // {
-            //     strncat(received_string, buffer, n);
+            while ((n = recv(clientfd, buffer, BUFFER_SIZE, 0)) > 0)
+            {
+                strncat(received_string, buffer, n);
 
-            //     if (strchr(received_string, ']') != NULL)
-            //     {
-            //         break;
-            //     }
-            //     memset(buffer, 0, BUFFER_SIZE);
-            // }
-            printf("Waiting for client");
-            fflush(stdout);
-            memset(buffer, 0, BUFFER_SIZE);
-            recv(clientfd, buffer, BUFFER_SIZE, 0);
-            // Print received string
-            printf("Received string: %s\n", buffer);
-            fflush(stdout);
+                if (strchr(received_string, ']') != NULL)
+                {
+                    break;
+                }
+                memset(buffer, 0, BUFFER_SIZE);
+            }
+            // printf("Waiting for client");
+            // fflush(stdout);
+            // memset(buffer, 0, BUFFER_SIZE);
+            // recv(clientfd, buffer, BUFFER_SIZE, 0);
+            // // Print received string
+            // printf("Received string: %s\n", buffer);
+            // fflush(stdout);
 
-            char *brk = strdup(received_string);
+            char *brk = received_string;
             Cipher cipher;
             cipher.name = strtok(brk, "\t");
             cipher.plaintext_size = atoi(strtok(NULL, "\t"));
