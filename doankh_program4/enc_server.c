@@ -122,7 +122,7 @@ int main(int argc, char *argv[])
             // Receive data from client until the character "]" is reached
             while ((n = recv(clientfd, buffer, BUFFER_SIZE, 0)) == 0)
             {
-                continue;
+                printf(1);
             }
 
             while ((n = recv(clientfd, buffer, BUFFER_SIZE, 0)) > 0)
@@ -134,7 +134,7 @@ int main(int argc, char *argv[])
                 }
                 memset(buffer, 0, BUFFER_SIZE);
             }
-
+            
             // Print received string
             printf("Received string: %s\n", received_string);
 
