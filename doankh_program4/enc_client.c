@@ -101,64 +101,58 @@ int main(int argc, char *argv[])
         exit(2);
     }
 
-    // Send newline character to server
-    char newline[2] = "\n";
-    // Send program name to server
     char buffer[BUFFER_SIZE];
-    memset(buffer, 0, BUFFER_SIZE);
-    sprintf(buffer, "%s ", argv[0]);
-    send(sockfd, buffer, strlen(buffer), 0);
-    send(sockfd, newline, strlen(newline), 0);
+    // Concatenate all strings to be sent
+    char concatenated_string[BUFFER_SIZE * 4]; // Maximum size required to hold all strings
+    memset(concatenated_string, 0, sizeof(concatenated_string));
+    sprintf(concatenated_string, "%s\t", argv[0]);
 
-    memset(buffer, 0, BUFFER_SIZE);
-
-    // Send plaintext and key size to server
     FILE *plaintext_file2 = fopen(plaintext, "r");
     fseek(plaintext_file2, 0, SEEK_END);
-    size_t plaintext_size2 = ftell(plaintext_file2);
+    size_t plaintext_size2 = ftell(plaintext_file);
     fclose(plaintext_file2);
-    sprintf(buffer, "%lu ", plaintext_size2);
-    send(sockfd, buffer, strlen(buffer), 0);
-    send(sockfd, newline, strlen(newline), 0);
+    sprintf(concatenated_string + strlen(concatenated_string), "%lu\t", plaintext_size2);
 
-    memset(buffer, 0, BUFFER_SIZE);
     FILE *key_file2 = fopen(key, "r");
     fseek(key_file2, 0, SEEK_END);
     size_t key_size2 = ftell(key_file2);
     fclose(key_file2);
-    sprintf(buffer, "%lu ", key_size2);
-    send(sockfd, buffer, strlen(buffer), 0);
-    send(sockfd, newline, strlen(newline), 0);
+    sprintf(concatenated_string + strlen(concatenated_string), "%lu\t", key_size2);
 
-    memset(buffer, 0, BUFFER_SIZE);
-    // Send plaintext and key to server
-    FILE *plaintext_file3 = fopen(plaintext, "r");
-    while ((n = fread(buffer, 1, BUFFER_SIZE, plaintext_file3)) > 0)
+    plaintext_file2 = fopen(plaintext, "r");
+    while ((n = fread(buffer, 1, BUFFER_SIZE, plaintext_file2)) > 0)
     {
-        send(sockfd, buffer, n, 0);
+        strncat(concatenated_string + strlen(concatenated_string), buffer, n);
         memset(buffer, 0, BUFFER_SIZE);
     }
-    fclose(plaintext_file3);
-    send(sockfd, newline, strlen(newline), 0);
+    fclose(plaintext_file2);
 
-    memset(buffer, 0, BUFFER_SIZE);
+    strncat(concatenated_string + strlen(concatenated_string), "\t", strlen("\t"));
 
-    FILE *key_file3 = fopen(key, "r");
-    while ((n = fread(buffer, 1, BUFFER_SIZE, key_file3)) > 0)
+    key_file2 = fopen(key, "r");
+    while ((n = fread(buffer, 1, BUFFER_SIZE, key_file2)) > 0)
     {
-        send(sockfd, buffer, n, 0);
+        strncat(concatenated_string + strlen(concatenated_string), buffer, n);
         memset(buffer, 0, BUFFER_SIZE);
     }
-    fclose(key_file3);
+    fclose(key_file2);
 
-    memset(buffer, 0, BUFFER_SIZE);
+    strncat(concatenated_string + strlen(concatenated_string), "]", 1);
 
-    send(sockfd, newline, strlen(newline), 0);
+    // Send the concatenated string 256 letters at a time to the server
+    int num_chunks = strlen(concatenated_string) / 256 + 1; // Number of 256-letter chunks to send
+    for (int i = 0; i < num_chunks; i++)
+    {
+        char chunk[257];
+        memset(chunk, 0, sizeof(chunk));
+        strncpy(chunk, concatenated_string + i * 256, 256);
+        send(sockfd, chunk, strlen(chunk), 0);
+    }
 
     // Receive ciphertext from server
     memset(buffer, 0, BUFFER_SIZE);
     int ciphertext_len = 0;
-    int expected_ciphertext_len = plaintext_size2;
+    int expected_ciphertext_len = plaintext_size;
     while (ciphertext_len < expected_ciphertext_len)
     {
         n = recv(sockfd, buffer + ciphertext_len, BUFFER_SIZE, 0);

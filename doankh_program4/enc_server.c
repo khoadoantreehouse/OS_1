@@ -118,25 +118,29 @@ int main(int argc, char *argv[])
         else if (pid == 0)
         {
             // child process
-
-            // verify client identity
-            memset(buffer, 0, BUFFER_SIZE);
-            n = recv(clientfd, buffer, BUFFER_SIZE - 1, 0);
-            if (n < 0)
+            char received_string[BUFFER_SIZE];
+            // Receive data from client until the character "]" is reached
+            int n;
+            while ((n = recv(clientfd, buffer, BUFFER_SIZE, 0)) > 0)
             {
-                error("Error reading from socket");
-                close(clientfd);
-                exit(1);
+                strncat(received_string, buffer, n);
+                if (strchr(received_string, ']') != NULL)
+                {
+                    break;
+                }
+                memset(buffer, 0, BUFFER_SIZE);
             }
-            printf("%s\n", buffer);
 
-            char *brk = strdup(buffer);
+            // Print received string
+            printf("Received string: %s\n", received_string);
+
+            char *brk = strdup(received_string);
             Cipher cipher;
-            cipher.name = strtok(brk, "\n");
-            cipher.plaintext_size = atoi(strtok(NULL, "\n"));
-            cipher.key_size = atoi(strtok(NULL, "\n"));
-            cipher.plaintext = strtok(NULL, "\n");
-            cipher.key = strtok(NULL, "\n");
+            cipher.name = strtok(brk, "\t");
+            cipher.plaintext_size = atoi(strtok(NULL, "\t"));
+            cipher.key_size = atoi(strtok(NULL, "\t"));
+            cipher.plaintext = strtok(NULL, "\t");
+            cipher.key = strtok(NULL, "]");
 
             if (strstr(cipher.name, "enc_client") == NULL)
             {
