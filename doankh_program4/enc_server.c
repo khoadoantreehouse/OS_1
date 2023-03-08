@@ -128,7 +128,6 @@ int main(int argc, char *argv[])
             while ((n = recv(clientfd, buffer, BUFFER_SIZE, 0)) > 0)
             {
                 strncat(received_string, buffer, n);
-                printf("%s\n", buffer);
                 if (strchr(received_string, ']') != NULL)
                 {
                     break;
