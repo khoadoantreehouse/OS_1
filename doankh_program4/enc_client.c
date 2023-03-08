@@ -111,7 +111,7 @@ int main(int argc, char *argv[])
 
     FILE *plaintext_file2 = fopen(plaintext, "r");
     fseek(plaintext_file2, 0, SEEK_END);
-    size_t plaintext_size2 = ftell(plaintext_file);
+    size_t plaintext_size2 = ftell(plaintext_file2);
     fclose(plaintext_file2);
     sprintf(concatenated_string + strlen(concatenated_string), "%lu\t", plaintext_size2);
 
