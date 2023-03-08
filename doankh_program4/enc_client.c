@@ -38,6 +38,8 @@ int is_valid_file(const char *filename)
 
 int main(int argc, char *argv[])
 {
+    printf("Client is running\n");
+
     // Check command-line arguments
     if (argc != 4)
     {

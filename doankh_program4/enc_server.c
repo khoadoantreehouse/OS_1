@@ -47,6 +47,8 @@ char my_encrypt(char message, char key)
 
 int main(int argc, char *argv[])
 {
+    printf("Client is running\n");
+
     if (argc != 2)
     {
         error("Usage: enc_server <listening_port>");
