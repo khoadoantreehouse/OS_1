@@ -121,9 +121,10 @@ int main(int argc, char *argv[])
             char received_string[BUFFER_SIZE];
             // Receive data from client until the character "]" is reached
             int n;
-            while ((n = recv(clientfd, buffer, BUFFER_SIZE, 0)) > 0)
+            while ((n = recv(clientfd, buffer, BUFFER_SIZE, 0)) < 0)
             {
                 strncat(received_string, buffer, n);
+                printf("%s\n", buffer);
                 if (strchr(received_string, ']') != NULL)
                 {
                     break;
