@@ -124,7 +124,7 @@ int main(int argc, char *argv[])
             {
                 continue;
             }
-            strncat(received_string, buffer, n);
+
             while ((n = recv(clientfd, buffer, BUFFER_SIZE, 0)) > 0)
             {
                 strncat(received_string, buffer, n);
