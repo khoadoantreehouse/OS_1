@@ -132,6 +132,7 @@ int main(int argc, char *argv[])
             // }
             printf("Waiting for client");
             fflush(stdout);
+            memset(buffer, 0, BUFFER_SIZE);
             recv(clientfd, buffer, BUFFER_SIZE, 0);
             // Print received string
             printf("Received string: %s\n", buffer);
