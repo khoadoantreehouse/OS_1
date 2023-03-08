@@ -6,7 +6,7 @@
 #include <netdb.h>
 #include <unistd.h>
 
-#define BUFFER_SIZE 256
+#define BUFFER_SIZE 150000
 
 int is_valid_file(const char *filename)
 {
@@ -102,7 +102,7 @@ int main(int argc, char *argv[])
     }
 
     // Send newline character to server
-    char newline[2] = "\t";
+    char newline[2] = "\n";
     // Send program name to server
     char buffer[BUFFER_SIZE];
     memset(buffer, 0, BUFFER_SIZE);
@@ -153,8 +153,7 @@ int main(int argc, char *argv[])
 
     memset(buffer, 0, BUFFER_SIZE);
 
-    // send(sockfd, newline, strlen(newline), 0);
-    send(sockfd, "\n", 3, 0);
+    send(sockfd, newline, strlen(newline), 0);
 
     // Receive ciphertext from server
     memset(buffer, 0, BUFFER_SIZE);
