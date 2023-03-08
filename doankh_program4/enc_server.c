@@ -120,19 +120,22 @@ int main(int argc, char *argv[])
             // child process
             char received_string[BUFFER_SIZE];
             // Receive data from client until the character "]" is reached
-            while ((n = recv(clientfd, buffer, BUFFER_SIZE, 0)) > 0)
-            {
-                strncat(received_string, buffer, n);
+            // while ((n = recv(clientfd, buffer, BUFFER_SIZE, 0)) > 0)
+            // {
+            //     strncat(received_string, buffer, n);
 
-                if (strchr(received_string, ']') != NULL)
-                {
-                    break;
-                }
-                memset(buffer, 0, BUFFER_SIZE);
-            }
-
+            //     if (strchr(received_string, ']') != NULL)
+            //     {
+            //         break;
+            //     }
+            //     memset(buffer, 0, BUFFER_SIZE);
+            // }
+            printf("Waiting for client");
+            fflush(stdout);
+            recv(clientfd, buffer, BUFFER_SIZE, 0);
             // Print received string
-            printf("Received string: %s\n", received_string);
+            printf("Received string: %s\n", buffer);
+            fflush(stdout);
 
             char *brk = strdup(received_string);
             Cipher cipher;
