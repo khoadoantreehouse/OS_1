@@ -120,7 +120,8 @@ int main(int argc, char *argv[])
             // child process
             char received_string[BUFFER_SIZE];
             // Receive data from client until the character "]" is reached
-            int n;
+            int n = recv(clientfd, buffer, BUFFER_SIZE, 0);
+            printf("%d\n", n);
             while ((n = recv(clientfd, buffer, BUFFER_SIZE, 0)) < 0)
             {
                 strncat(received_string, buffer, n);
