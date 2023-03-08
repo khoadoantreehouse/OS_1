@@ -157,7 +157,8 @@ int main(int argc, char *argv[])
                 key[i] = toupper(cipher.key[i]);
                 ciphertext[i] = my_decrypt(ciphertext[i], key[i]);
             }
-            if (cipher.plaintext_size > strlen(cipher.plaintext))
+
+            if (cipher.plaintext[cipher.plaintext_size - 1] == '\n')
             {
                 ciphertext[cipher.plaintext_size - 1] = '\n';
             }
