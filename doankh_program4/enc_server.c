@@ -47,7 +47,7 @@ char my_encrypt(char message, char key)
 
 int main(int argc, char *argv[])
 {
-    printf("Client is running\n");
+    printf("Server is running\n");
 
     if (argc != 2)
     {
