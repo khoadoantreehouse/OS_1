@@ -145,6 +145,8 @@ int main(int argc, char *argv[])
         send(sockfd, chunk, strlen(chunk), 0);
     }
 
+    printf("Send complete\n");
+    fflush(stdout);
     // Receive ciphertext from server
     memset(buffer, 0, BUFFER_SIZE);
     int ciphertext_len = 0;
