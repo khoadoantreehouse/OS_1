@@ -9,6 +9,8 @@
 !README.md
 !*testscript
 !plaintext*
+!*.toml
+!*.rs
 # etc...
 
 # ...even if they are in subdirectories
